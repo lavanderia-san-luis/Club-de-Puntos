@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Mis Puntos - Lavanderia San Luis</title>
-<link rel="icon" type="image/png" href="logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -35,6 +34,249 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 .back-btn:hover{color:rgba(255,255,255,.6)}
 .card{width:100%;border-radius:28px;overflow:hidden;position:relative;box-shadow:0 2px 0 rgba(255,255,255,.05) inset,0 40px 80px rgba(0,0,0,.7),0 12px 30px rgba(0,0,0,.4);animation:cardIn .65s cubic-bezier(.34,1.42,.64,1) both}
 .card.oro{background:linear-gradient(145deg,#140e03 0%,#2e1f04 50%,#140e03 100%)}
+.card.plata{background:linear-gradient(145deg,#0a1018 0%,#152030 50%,#0a1018 100%)}
+.card.bronce{background:linear-gradient(145deg,#130903 0%,#261407 50%,#130903 100%)}
+.card-deco{position:absolute;border-radius:50%;pointer-events:none}
+.card.oro .card-deco{background:radial-gradient(circle,rgba(201,164,60,.18),transparent)}
+.card.plata .card-deco{background:radial-gradient(circle,rgba(122,143,166,.14),transparent)}
+.card.bronce .card-deco{background:radial-gradient(circle,rgba(154,96,64,.16),transparent)}
+.deco-1{width:220px;height:220px;top:-70px;right:-70px}
+.deco-2{width:160px;height:160px;bottom:-50px;left:-50px}
+.card-shimmer{position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.045) 50%,transparent 62%);background-size:250% 100%;animation:shimmer 5s ease-in-out infinite}
+.card-inner{position:relative;z-index:2;padding:26px 26px 22px}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.card-head-logo{width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;overflow:hidden;flex-shrink:0}
+.card-head-logo img{width:34px;height:34px;object-fit:contain}
+.ch-center{flex:1;padding:0 12px}
+.ch-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:rgba(255,255,255,.8)}
+.ch-sub{font-size:.58rem;color:rgba(255,255,255,.3);letter-spacing:.16em;text-transform:uppercase;margin-top:2px}
+.tier-badge{display:flex;align-items:center;gap:5px;flex-shrink:0;padding:5px 13px;border-radius:20px;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.card.oro .tier-badge{background:rgba(201,164,60,.18);color:var(--gold3);border:1px solid rgba(201,164,60,.28)}
+.card.plata .tier-badge{background:rgba(122,143,166,.14);color:var(--sil2);border:1px solid rgba(122,143,166,.22)}
+.card.bronce .tier-badge{background:rgba(154,96,64,.16);color:var(--bro2);border:1px solid rgba(154,96,64,.24)}
+.pts-label{font-size:.6rem;color:rgba(255,255,255,.3);letter-spacing:.16em;text-transform:uppercase;margin-bottom:5px}
+.pts-display{display:flex;align-items:baseline;gap:10px;margin-bottom:22px}
+.pts-num{font-family:'Cormorant Garamond',serif;font-size:4.4rem;font-weight:700;line-height:1;letter-spacing:-.01em}
+.card.oro .pts-num{color:var(--gold3)}
+.card.plata .pts-num{color:var(--sil2)}
+.card.bronce .pts-num{color:var(--bro2)}
+.pts-unit{font-size:.8rem;color:rgba(255,255,255,.35);font-weight:400;letter-spacing:.1em;text-transform:uppercase;padding-bottom:8px}
+.prog-wrap{margin-bottom:24px}
+.prog-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.prog-txt{font-size:.68rem;color:rgba(255,255,255,.32)}
+.prog-pct{font-size:.68rem;font-weight:600}
+.card.oro .prog-pct{color:var(--gold2)}
+.card.plata .prog-pct{color:var(--sil2)}
+.card.bronce .prog-pct{color:var(--bro2)}
+.prog-track{height:4px;border-radius:10px;background:rgba(255,255,255,.07);overflow:hidden}
+.prog-bar{height:100%;border-radius:10px;transition:width 1.4s cubic-bezier(.23,1,.32,1)}
+.card.oro .prog-bar{background:linear-gradient(90deg,var(--gold),var(--gold3))}
+.card.plata .prog-bar{background:linear-gradient(90deg,var(--sil),var(--sil2))}
+.card.bronce .prog-bar{background:linear-gradient(90deg,var(--bro),var(--bro2))}
+.info-strip{display:grid;grid-template-columns:1fr 1fr;gap:1px;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.06);margin-bottom:22px}
+.is-item{background:rgba(255,255,255,.03);padding:13px 14px}
+.is-val{font-family:'DM Mono',monospace;font-size:.9rem;font-weight:500;color:rgba(255,255,255,.75)}
+.is-lbl{font-size:.56rem;color:rgba(255,255,255,.26);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.card-foot{display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid rgba(255,255,255,.07);padding-top:16px}
+.cf-name{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:rgba(255,255,255,.82)}
+.cf-ot{font-size:.63rem;color:rgba(255,255,255,.25);margin-top:3px;letter-spacing:.06em}
+.cf-chip{width:38px;height:30px;border-radius:6px;display:grid;place-items:center}
+.card.oro .cf-chip{border:1.5px solid rgba(201,164,60,.28);background:rgba(201,164,60,.06)}
+.card.plata .cf-chip{border:1.5px solid rgba(122,143,166,.2);background:rgba(122,143,166,.05)}
+.card.bronce .cf-chip{border:1.5px solid rgba(154,96,64,.22);background:rgba(154,96,64,.05)}
+.chip-g{display:flex;flex-direction:column;gap:3.5px}
+.chip-l{height:1.5px;border-radius:2px;background:rgba(255,255,255,.18)}
+.chip-l:nth-child(1),.chip-l:nth-child(3){width:20px}
+.chip-l:nth-child(2){width:14px}
+.page-footer{margin-top:24px;display:flex;align-items:center;justify-content:center;gap:8px;animation:fadeUp .5s .3s ease both}
+.page-footer img{width:22px;height:22px;opacity:.3;object-fit:contain}
+.page-footer span{font-size:.65rem;color:rgba(255,255,255,.15);letter-spacing:.08em}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes cardIn{from{opacity:0;transform:scale(.92) translateY(22px)}to{opacity:1;transform:none}}
+@keyframes shimmer{0%,100%{background-position:-150% center}50%{background-position:150% center}}
+@keyframes logoIn{from{opacity:0;transform:scale(.8) translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media(max-width:440px){.pts-num{font-size:3.6rem}.card-inner{padding:22px 20px 18px}}
+</style>
+</head>
+<body>
+
+<div class="screen visible" id="screen-search">
+  <div class="brand">
+    <div class="brand-logo">
+      <img src="logo.png">
+    </div>
+    <div class="brand-name">Lavanderia<br>San Luis</div>
+    <div class="brand-tagline">Club de Puntos</div>
+  </div>
+  <label class="search-label" for="s-input">Ingresa tu número de teléfono</label>
+  <div class="search-wrap">
+    <input class="search-field" id="s-input" type="number"
+      placeholder="Ej. 4521"
+      autocomplete="off" inputmode="numeric"
+      onkeydown="if(event.key==='Enter') buscarOT()">
+    <button class="search-btn" onclick="buscarOT()" title="Buscar">&#128269;</button>
+  </div>
+  <div class="search-error" id="search-error">
+    Numero de orden no encontrado. Verifica el numero en tu recibo e intenta de nuevo.
+  </div>
+</div>
+
+<div class="screen" id="screen-card">
+  <div class="card-screen">
+    <button class="back-btn" onclick="goBack()">&#8592; Consultar otro numero</button>
+    <div id="card-mount"></div>
+  </div>
+</div>
+
+<div class="page-footer">
+  <img src="logo.png">
+  <span>Lavanderia San Luis &middot; Club de Puntos</span>
+</div>
+
+<script>
+  // Configuración de Supabase
+  const SUPABASE_URL = "https://orjtfutchnnzktoonqda.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yanRmdXRjaG5uemt0b29ucWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNjUxNDEsImV4cCI6MjA5MTk0MTE0MX0.X-wQuPqS80Qy1xUU9v4jfbHWUIXMxLCFKbOS_VOym6g";
+  
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false }
+  });
+
+function getTier(pts) {
+  // Oro: 150 o más
+  if (pts >= 150) return {t:'oro', label:'Oro', next:'Nivel máximo', meta:null};
+  // Plata: 50 a 149
+  if (pts >= 50)  return {t:'plata', label:'Plata', next:'Oro', meta:150};
+  // Bronce: 0 a 49
+  return {t:'bronce', label:'Bronce', next:'Plata', meta:50};
+}
+
+function getProgress(pts, tier) {
+  if (!tier.meta) return 100;
+  // Calculamos desde dónde empieza el nivel actual
+  var inicio = (tier.t === 'plata') ? 50 : 0;
+  var rango = tier.meta - inicio;
+  var actuales = pts - inicio;
+  
+  var pct = Math.round((actuales / rango) * 100);
+  return Math.min(100, Math.max(0, pct));
+}
+
+async function buscarOT() {
+  const inputEl = document.getElementById('s-input');
+  // Limpiamos el input para que solo tenga dígitos (ej: 77778888)
+  const raw = inputEl.value.trim().replace(/\D/g, '');
+  const err = document.getElementById('search-error');
+  const btn = document.querySelector('.search-btn');
+
+  if (raw.length < 8) { shakeInput(); return; }
+
+  err.classList.remove('show');
+  btn.disabled = true;
+  const originalText = btn.innerText;
+  btn.innerText = 'Buscando...';
+
+  try {
+    // Buscamos coincidencia exacta con el número limpio
+    const { data, error } = await supabaseClient
+      .from('clientes')
+      .select('*')
+      .eq('telefono', raw)
+      .maybeSingle();
+
+    if (error || !data) {
+      err.textContent = "No encontramos este número de teléfono.";
+      err.classList.add('show');
+      shakeInput();
+      return;
+    }
+
+    mostrarTarjeta(data);
+  } catch (err) {
+    console.error('Error:', err);
+    alert('Error al conectar con la base de datos');
+  } finally {
+    btn.disabled = false;
+    btn.innerText = originalText;
+  }
+}
+
+function mostrarTarjeta(c) {
+  // Usamos puntos_disp para mostrar lo que puede gastar realmente
+  const puntos = c.puntos_disp || 0;
+  const tier = getTier(puntos);
+  const prog = getProgress(puntos, tier);
+  
+  const progLabel = !tier.meta
+    ? '¡Felicidades! Eres nivel máximo'
+    : ((tier.meta - puntos) + ' puntos para nivel ' + tier.next);
+
+  // Formateo de fecha
+  let fechaStr = '---';
+  if (c.ultima_visita) {
+    const d = new Date(c.ultima_visita);
+    fechaStr = isNaN(d.getTime()) ? '---' : d.toLocaleDateString('es-SV');
+  }
+
+  document.getElementById('card-mount').innerHTML =
+    '<div class="card ' + tier.t + '">' +
+    '<div class="card-deco deco-1"></div><div class="card-deco deco-2"></div><div class="card-shimmer"></div>' +
+    '<div class="card-inner">' +
+    '<div class="card-head">' +
+      '<img src="logo.png" style="width: 40px; height: 40px; object-fit: contain;">' +
+      '<div class="ch-center"><div class="ch-name">Lavandería San Luis</div><div class="ch-sub">Club de Puntos</div></div>' +
+      '<div class="tier-badge">' + tier.label + '</div>' +
+    '</div>' +
+    '<div class="pts-label">Puntos disponibles</div>' +
+    '<div class="pts-display"><span class="pts-num" id="pts-anim">0</span><span class="pts-unit">PUNTOS</span></div>' +
+    '<div class="prog-wrap"><div class="prog-info"><span class="prog-txt">' + progLabel + '</span><span class="prog-pct">' + prog + '%</span></div>' +
+    '<div class="prog-track"><div class="prog-bar" id="pbar" style="width:0%"></div></div></div>' +
+    '<div class="info-strip">' +
+      '<div class="is-item"><div class="is-val">' + (c.ots || 0) + '</div><div class="is-lbl">Órdenes</div></div>' +
+      '<div class="is-item"><div class="is-val">' + fechaStr + '</div><div class="is-lbl">Última visita</div></div>' +
+    '</div>' +
+    '<div class="card-foot"><div><div class="cf-name">' + c.nombre + '</div><div class="cf-ot">Cliente Valioso</div></div>' +
+    '<div class="cf-chip"><div class="chip-g"><div class="chip-l"></div><div class="chip-l"></div><div class="chip-l"></div></div></div>' +
+    '</div></div></div>';
+
+  document.getElementById('screen-search').classList.remove('visible');
+  document.getElementById('screen-card').classList.add('visible');
+  
+  animPts(puntos);
+  setTimeout(function() { 
+    var b = document.getElementById('pbar'); 
+    if (b) b.style.width = prog + '%'; 
+  }, 250);
+}
+
+function goBack() {
+  document.getElementById('screen-card').classList.remove('visible');
+  document.getElementById('screen-search').classList.add('visible');
+  document.getElementById('s-input').value = '';
+  document.getElementById('search-error').classList.remove('show');
+}
+
+function animPts(target) {
+  var el = document.getElementById('pts-anim'); if (!el) return;
+  var s = performance.now(), ms = 1200;
+  (function loop(now) {
+    var t = Math.min(1,(now-s)/ms), e = 1-Math.pow(1-t,3);
+    el.textContent = Math.round(e*target).toLocaleString('es-SV');
+    if (t < 1) requestAnimationFrame(loop);
+  })(s);
+}
+
+function shakeInput() {
+  var el = document.getElementById('s-input');
+  el.style.animation = 'none'; el.offsetHeight;
+  el.style.animation = 'shake .4s ease';
+  el.style.borderColor = '#E05555';
+  setTimeout(function(){ el.style.borderColor=''; el.style.animation=''; }, 700);
+}
+</script>
+</body>
+</html>.card.oro{background:linear-gradient(145deg,#140e03 0%,#2e1f04 50%,#140e03 100%)}
 .card.plata{background:linear-gradient(145deg,#0a1018 0%,#152030 50%,#0a1018 100%)}
 .card.bronce{background:linear-gradient(145deg,#130903 0%,#261407 50%,#130903 100%)}
 .card-deco{position:absolute;border-radius:50%;pointer-events:none}
