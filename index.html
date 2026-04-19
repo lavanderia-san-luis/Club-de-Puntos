@@ -203,7 +203,6 @@ async function buscarOT() {
 }
 
 function mostrarTarjeta(c) {
-  // Usamos puntos_disp para mostrar lo que puede gastar realmente
   const puntos = c.puntos_disp || 0;
   const tier = getTier(puntos);
   const prog = getProgress(puntos, tier);
@@ -212,11 +211,23 @@ function mostrarTarjeta(c) {
     ? '¡Felicidades! Eres nivel máximo'
     : ((tier.meta - puntos) + ' puntos para nivel ' + tier.next);
 
-  // Formateo de fecha
-  let fechaStr = '---';
+  // --- LÓGICA DE VISITAS REALES ---
+  const visitas = c.ots || 0;
+  let mensajeFidelidad = "";
+  
+  if (visitas === 0) {
+    mensajeFidelidad = "¡Bienvenido al club!";
+  } else if (visitas === 1) {
+    mensajeFidelidad = "¡Gracias por tu primera visita!";
+  } else {
+    mensajeFidelidad = `Has confiado en nosotros ${visitas} veces ✨`;
+  }
+
+  // Formateo de fecha de última visita
+  let fechaVisita = '---';
   if (c.ultima_visita) {
     const d = new Date(c.ultima_visita);
-    fechaStr = isNaN(d.getTime()) ? '---' : d.toLocaleDateString('es-SV');
+    fechaVisita = isNaN(d.getTime()) ? '---' : d.toLocaleDateString('es-SV', { day: 'numeric', month: 'short' });
   }
 
   document.getElementById('card-mount').innerHTML =
@@ -232,12 +243,17 @@ function mostrarTarjeta(c) {
     '<div class="pts-display"><span class="pts-num" id="pts-anim">0</span><span class="pts-unit">PUNTOS</span></div>' +
     '<div class="prog-wrap"><div class="prog-info"><span class="prog-txt">' + progLabel + '</span><span class="prog-pct">' + prog + '%</span></div>' +
     '<div class="prog-track"><div class="prog-bar" id="pbar" style="width:0%"></div></div></div>' +
+    
+    // STRIP DE INFORMACIÓN CON DATOS REALES
     '<div class="info-strip">' +
-      '<div class="is-item"><div class="is-val">' + (c.ots || 0) + '</div><div class="is-lbl">Órdenes</div></div>' +
-      '<div class="is-item"><div class="is-val">' + fechaStr + '</div><div class="is-lbl">Última visita</div></div>' +
+      '<div class="is-item"><div class="is-val">' + mensajeFidelidad + '</div><div class="is-lbl">Tu historial</div></div>' +
+      '<div class="is-item"><div class="is-val">' + fechaVisita + '</div><div class="is-lbl">Tu última visita</div></div>' +
     '</div>' +
-    '<div class="card-foot"><div><div class="cf-name">' + c.nombre + '</div><div class="cf-ot">Cliente Valioso</div></div>' +
-    '<div class="cf-chip"><div class="chip-g"><div class="chip-l"></div><div class="chip-l"></div><div class="chip-l"></div></div></div>' +
+    
+    // PIE DE TARJETA
+    '<div class="card-foot">' +
+      '<div><div class="cf-name">' + (c.nombre || 'Cliente') + '</div></div>' +
+      '<div class="cf-chip"><div class="chip-g"><div class="chip-l"></div><div class="chip-l"></div><div class="chip-l"></div></div></div>' +
     '</div></div></div>';
 
   document.getElementById('screen-search').classList.remove('visible');
