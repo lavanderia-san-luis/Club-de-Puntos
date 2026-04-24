@@ -20,7 +20,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 .brand-tagline{font-size:.68rem;color:var(--teal3);letter-spacing:.2em;text-transform:uppercase;margin-top:6px;opacity:.7}
 .search-label{font-size:.68rem;color:rgba(255,255,255,.35);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;display:block;align-self:flex-start}
 .search-wrap{position:relative;width:100%;margin-bottom:10px}
-.search-field{width:100%;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:15px 56px 15px 20px;font-family:'DM Mono',monospace;font-size:1.05rem;color:#fff;outline:none;letter-spacing:.06em;transition:border-color .3s,background .3s;-moz-appearance:textfield}
+.search-field{width:100%;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:15px 56px 15px 60px;font-family:'DM Mono',monospace;font-size:1.05rem;color:#fff;outline:none;letter-spacing:.06em;transition:border-color .3s,background .3s;-moz-appearance:textfield}
+.search-prefix{position:absolute;left:20px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.25);font-family:'DM Mono',monospace;font-size:1rem;pointer-events:none}
 .search-field::-webkit-outer-spin-button,.search-field::-webkit-inner-spin-button{-webkit-appearance:none}
 .search-field::placeholder{color:rgba(255,255,255,.2);font-size:.9rem;letter-spacing:.02em}
 .search-field:focus{border-color:var(--teal);background:rgba(14,159,174,.08)}
@@ -97,6 +98,21 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 @keyframes logoIn{from{opacity:0;transform:scale(.8) translateY(-10px)}to{opacity:1;transform:none}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 @media(max-width:440px){.pts-num{font-size:3.6rem}.card-inner{padding:22px 20px 18px}}
+/* Reg Styles */
+.reg-prompt{margin-top:20px;padding:20px;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);border-radius:20px;text-align:center;display:none;animation:fadeUp .4s ease both}
+.reg-prompt.show{display:block}
+.reg-prompt p{font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.5;margin-bottom:16px}
+.reg-btn-link{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;padding:12px 24px;border-radius:12px;font-size:.85rem;font-weight:600;cursor:pointer;transition:transform .2s;box-shadow:0 4px 12px rgba(201,164,60,.2)}
+.reg-btn-link:hover{transform:scale(1.03)}
+
+.reg-form{width:100%;display:flex;flex-direction:column;gap:16px;margin-top:20px}
+.reg-group{display:flex;flex-direction:column;gap:8px}
+.reg-label{font-size:.68rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;padding-left:4px}
+.reg-input{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px;font-family:'Outfit',sans-serif;font-size:.95rem;color:#fff;outline:none;transition:border-color .3s}
+.reg-input:focus{border-color:var(--teal)}
+.reg-submit{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border:none;padding:16px;border-radius:16px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:12px;transition:transform .2s;box-shadow:0 5px 15px rgba(14,159,174,.3)}
+.reg-submit:hover{transform:scale(1.02)}
+.reg-submit:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -111,14 +127,56 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
   </div>
   <label class="search-label" for="s-input">Ingresa tu número de teléfono</label>
   <div class="search-wrap">
+    <span class="search-prefix">+503</span>
     <input class="search-field" id="s-input" type="number"
-      placeholder="Ej. 12345678"
+      placeholder="77665544"
       autocomplete="off" inputmode="numeric"
       onkeydown="if(event.key==='Enter') buscarOT()">
     <button class="search-btn" onclick="buscarOT()" title="Buscar">&#128269;</button>
   </div>
   <div class="search-error" id="search-error">
     Número no encontrado. Verifica que el número sea correcto.
+  </div>
+  
+  <!-- Registration Prompt -->
+  <div class="reg-prompt" id="reg-prompt">
+    <p id="reg-prompt-text">¿No eres miembro todavía?<br>Regístrate para empezar a acumular puntos.</p>
+    <button class="reg-btn-link" onclick="irARegistro()">Registrarme gratis</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-register">
+  <div class="brand" style="margin-bottom: 20px;">
+    <div class="brand-name">Crea tu Cuenta</div>
+    <div class="brand-tagline">Club de Puntos San Luis</div>
+  </div>
+  <button class="back-btn" onclick="cancelarRegistro()">&#8592; Volver</button>
+  
+  <div class="reg-form">
+    <div class="reg-group">
+      <label class="reg-label">Nombre</label>
+      <input type="text" class="reg-input" id="reg-nombre" placeholder="Ej. Juan">
+    </div>
+    <div class="reg-group">
+      <label class="reg-label">Apellido</label>
+      <input type="text" class="reg-input" id="reg-apellido" placeholder="Ej. Perez">
+    </div>
+    <div class="reg-group">
+      <label class="reg-label">Teléfono (El Salvador)</label>
+      <div style="position:relative">
+        <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.35);font-size:.95rem">+503</span>
+        <input type="number" class="reg-input" id="reg-tel" placeholder="77665544" style="padding-left:60px;width:100%">
+      </div>
+    </div>
+    <div class="reg-group">
+      <label class="reg-label">Correo Electrónico</label>
+      <input type="email" class="reg-input" id="reg-email" placeholder="ejemplo@correo.com">
+    </div>
+    <div class="reg-group">
+      <label class="reg-label">Fecha de Nacimiento</label>
+      <input type="date" class="reg-input" id="reg-fecha-nac" style="color-scheme: dark;">
+    </div>
+    <button class="reg-submit" id="reg-btn-submit" onclick="confirmarRegistro()">Finalizar Registro</button>
   </div>
 </div>
 
@@ -142,6 +200,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: false }
   });
+
+  let legacyClient = null; // Almacena datos si el cliente existe pero está incompleto
+
 
 function getTier(pts) {
   // Oro: 150 o más
@@ -180,15 +241,30 @@ async function buscarOT() {
   try {
     // Buscamos coincidencia exacta con el número limpio
     const { data, error } = await supabaseClient
-      .from('clientes')
+      .from('puntos_clientes')
       .select('*')
       .eq('telefono', raw)
       .maybeSingle();
 
     if (error || !data) {
-      err.textContent = "No encontramos este número de teléfono.";
+      document.getElementById('reg-prompt-text').innerHTML = "¿No eres miembro todavía?<br>Regístrate para empezar a acumular puntos.";
+      document.getElementById('reg-prompt').classList.add('show');
+      document.getElementById('reg-tel').value = raw; // Pre-llenar teléfono
+      legacyClient = null;
+      err.textContent = "Número no encontrado.";
       err.classList.add('show');
       shakeInput();
+      return;
+    }
+
+    // Verificar si el perfil está incompleto (falta email o fecha de nacimiento)
+    if (!data.email || !data.fecha_nacimiento) {
+      document.getElementById('reg-prompt-text').innerHTML = "¡Hola <b>" + (data.nombre || 'cliente') + "</b>! Encontramos tu cuenta básica.<br>Completa tu perfil para asegurar tus puntos.";
+      document.getElementById('reg-prompt').classList.add('show');
+      document.getElementById('reg-tel').value = raw;
+      legacyClient = data;
+      err.textContent = "Perfil incompleto.";
+      err.classList.add('show');
       return;
     }
 
@@ -213,14 +289,13 @@ function mostrarTarjeta(c) {
 
   // --- LÓGICA DE VISITAS REALES ---
   const visitas = c.ots || 0;
+  const puntosTotales = c.puntos_ganados || 0;
   let mensajeFidelidad = "";
   
-  if (visitas === 0) {
-    mensajeFidelidad = "¡Bienvenido al club!";
-  } else if (visitas === 1) {
-    mensajeFidelidad = "¡Gracias por tu primera visita!";
+  if (puntosTotales > 0 || visitas > 0) {
+    mensajeFidelidad = "¡Gracias por confiar en nosotros!";
   } else {
-    mensajeFidelidad = `¡Gracias por confiar en nosotros!`;
+    mensajeFidelidad = "¡Bienvenido al club!";
   }
 
   // Formateo de fecha de última visita
@@ -246,13 +321,13 @@ function mostrarTarjeta(c) {
     
     // STRIP DE INFORMACIÓN CON DATOS REALES
     '<div class="info-strip">' +
-      '<div class="is-item"><div class="is-val">' + mensajeFidelidad + '</div><div class="is-lbl">Tu historial</div></div>' +
+      '<div class="is-item"><div class="is-val">' + mensajeFidelidad + '</div></div>' +
       '<div class="is-item"><div class="is-val">' + fechaVisita + '</div><div class="is-lbl">Tu última visita</div></div>' +
     '</div>' +
     
     // PIE DE TARJETA
     '<div class="card-foot">' +
-      '<div><div class="cf-name">' + (c.nombre || 'Cliente') + '</div></div>' +
+      '<div><div class="cf-name">' + ((c.nombre || '') + ' ' + (c.apellido || '')).trim() + '</div></div>' +
       '<div class="cf-chip"><div class="chip-g"><div class="chip-l"></div><div class="chip-l"></div><div class="chip-l"></div></div></div>' +
     '</div></div></div>';
 
@@ -268,9 +343,106 @@ function mostrarTarjeta(c) {
 
 function goBack() {
   document.getElementById('screen-card').classList.remove('visible');
+  document.getElementById('screen-register').classList.remove('visible');
   document.getElementById('screen-search').classList.add('visible');
   document.getElementById('s-input').value = '';
   document.getElementById('search-error').classList.remove('show');
+  document.getElementById('reg-prompt').classList.remove('show');
+}
+
+function irARegistro() {
+  document.getElementById('screen-search').classList.remove('visible');
+  document.getElementById('screen-register').classList.add('visible');
+  
+  // Limitar la fecha de nacimiento a hace 18 años
+  const inputFecha = document.getElementById('reg-fecha-nac');
+  const hoy = new Date();
+  const hace18 = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+  inputFecha.max = hace18.toISOString().split('T')[0];
+
+  // Si encontramos un cliente legacy, pre-llenamos el nombre
+  if (legacyClient) {
+    document.getElementById('reg-nombre').value = legacyClient.nombre || '';
+    document.getElementById('reg-apellido').value = legacyClient.apellido || '';
+    document.getElementById('reg-email').value = legacyClient.email || '';
+    document.getElementById('reg-fecha-nac').value = legacyClient.fecha_nacimiento || '';
+  }
+}
+
+function cancelarRegistro() {
+  document.getElementById('screen-register').classList.remove('visible');
+  document.getElementById('screen-search').classList.add('visible');
+}
+
+async function confirmarRegistro() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const apellido = document.getElementById('reg-apellido').value.trim();
+  const tel = document.getElementById('reg-tel').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const fechaNac = document.getElementById('reg-fecha-nac').value;
+  const btn = document.getElementById('reg-btn-submit');
+
+  if (!nombre || !apellido || tel.length < 8 || !email || !fechaNac) {
+    alert("Por favor completa todos los campos correctamente.");
+    return;
+  }
+
+  // Validación de Correo Realista
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    alert("Por favor ingresa un correo electrónico válido.");
+    return;
+  }
+
+  // Validación de Edad (Mínimo 18 años)
+  const hoy = new Date();
+  const cumple = new Date(fechaNac);
+  let edad = hoy.getFullYear() - cumple.getFullYear();
+  const m = hoy.getMonth() - cumple.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < cumple.getDate())) {
+    edad--;
+  }
+
+  if (edad < 18) {
+    alert("Debes ser mayor de 18 años para registrarte en el Club de Puntos.");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerText = "Procesando...";
+
+  // Objeto para UPSERT
+  const newClientData = {
+    nombre: nombre,
+    apellido: apellido,
+    telefono: tel,
+    email: email,
+    fecha_nacimiento: fechaNac,
+    nombre_software: legacyClient ? (legacyClient.nombre_software || (nombre + ' ' + apellido).trim()) : (nombre + ' ' + apellido).trim(),
+    puntos_disp: legacyClient ? legacyClient.puntos_disp : 0,
+    puntos_ganados: legacyClient ? legacyClient.puntos_ganados : 0,
+    ots: legacyClient ? legacyClient.ots : 0,
+    estatus: legacyClient ? legacyClient.estatus : 'Bronce'
+  };
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('puntos_clientes')
+      .upsert(newClientData, { onConflict: 'telefono' })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    alert("¡Registro completado con éxito!");
+    mostrarTarjeta(data);
+  } catch (err) {
+    console.error("Error en registro:", err);
+    alert("Hubo un error al guardar tus datos.");
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "Finalizar Registro";
+  }
 }
 
 function animPts(target) {
