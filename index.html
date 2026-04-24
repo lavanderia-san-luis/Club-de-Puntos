@@ -105,14 +105,62 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 .reg-btn-link{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;padding:12px 24px;border-radius:12px;font-size:.85rem;font-weight:600;cursor:pointer;transition:transform .2s;box-shadow:0 4px 12px rgba(201,164,60,.2)}
 .reg-btn-link:hover{transform:scale(1.03)}
 
-.reg-form{width:100%;display:flex;flex-direction:column;gap:16px;margin-top:20px}
-.reg-group{display:flex;flex-direction:column;gap:8px}
-.reg-label{font-size:.68rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;padding-left:4px}
-.reg-input{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px;font-family:'Outfit',sans-serif;font-size:.95rem;color:#fff;outline:none;transition:border-color .3s}
-.reg-input:focus{border-color:var(--teal)}
-.reg-submit{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border:none;padding:16px;border-radius:16px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:12px;transition:transform .2s;box-shadow:0 5px 15px rgba(14,159,174,.3)}
-.reg-submit:hover{transform:scale(1.02)}
 .reg-submit:disabled{opacity:.5;cursor:not-allowed}
+
+/* Floating WhatsApp Button */
+.wa-float {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 54px;
+  height: 54px;
+  background: #25D366;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+  cursor: pointer;
+  z-index: 100;
+  transition: transform .2s;
+  text-decoration: none;
+}
+.wa-float:hover { transform: scale(1.1) rotate(5deg); }
+.wa-float img { width: 30px; height: 30px; }
+
+.WA-NOTICE {
+  font-size: .75rem;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  margin-top: 15px;
+  line-height: 1.4;
+}
+
+/* Rewards Section */
+.rewards-section {
+  width: 100%;
+  margin-top: 24px;
+}
+.reward-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+.reward-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform .2s;
+}
+.reward-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.05); }
+.reward-icon { font-size: 1.4rem; margin-bottom: 8px; }
+.reward-name { font-size: .75rem; font-weight: 500; color: #fff; line-height: 1.2; height: 32px; display: flex; align-items: center; }
+.reward-cost { font-size: .7rem; color: var(--teal3); font-weight: 700; margin-top: 6px; text-transform: uppercase; letter-spacing: .05em; }
 </style>
 </head>
 <body>
@@ -182,10 +230,47 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 
 <div class="screen" id="screen-card">
   <div class="card-screen">
-    <button class="back-btn" onclick="goBack()">&#8592; Atrás</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <button class="back-btn" onclick="goBack()">&#8592; Salir</button>
+      <div style="font-size: 0.6rem; color: rgba(255,255,255,0.2); letter-spacing: .1em">PUNTOS VERIFICADOS</div>
+    </div>
     <div id="card-mount"></div>
+    
+    <!-- Rewards Section -->
+    <div class="rewards-section">
+      <div style="font-size: .65rem; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: .15em; text-align: center;">Catálogo de Canjes</div>
+      <div class="reward-grid">
+        <div class="reward-card">
+          <div class="reward-icon">💨</div>
+          <div class="reward-name">Planchado de prenda</div>
+          <div class="reward-cost">25 Pts</div>
+        </div>
+        <div class="reward-card">
+          <div class="reward-icon">🚚</div>
+          <div class="reward-name">Domicilio Gratis</div>
+          <div class="reward-cost">50 Pts</div>
+        </div>
+        <div class="reward-card">
+          <div class="reward-icon">👟</div>
+          <div class="reward-name">Lavado de Zapatos</div>
+          <div class="reward-cost">100 Pts</div>
+        </div>
+        <div class="reward-card">
+          <div class="reward-icon">🧥</div>
+          <div class="reward-name">DryClean Saco/Blazer</div>
+          <div class="reward-cost">100 Pts</div>
+        </div>
+      </div>
+      <div class="WA-NOTICE">
+        Presenta tu tarjeta en el local o escríbenos por WhatsApp para canjear tus beneficios.
+      </div>
+    </div>
   </div>
 </div>
+
+<a href="https://wa.me/50325246129?text=Hola,%20tengo%20una%20duda%20sobre%20mi%20tarjeta%20de%20puntos." class="wa-float" target="_blank">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="Support">
+</a>
 
 <div class="page-footer">
   <img src="logo.png">
@@ -201,80 +286,91 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
     auth: { persistSession: false }
   });
 
-  let legacyClient = null; // Almacena datos si el cliente existe pero está incompleto
+  let legacyClient = null;
 
+  // Auto-Login Check on start
+  window.onload = function() {
+    const savedTel = localStorage.getItem('LSL_Loyalty_Phone');
+    if(savedTel) {
+      document.getElementById('s-input').value = savedTel;
+      buscarOT(true);
+    }
+  }
 
 function getTier(pts) {
-  // Oro: 150 o más
   if (pts >= 150) return {t:'oro', label:'Oro', next:'Nivel máximo', meta:null};
-  // Plata: 50 a 149
   if (pts >= 50)  return {t:'plata', label:'Plata', next:'Oro', meta:150};
-  // Bronce: 0 a 49
   return {t:'bronce', label:'Bronce', next:'Plata', meta:50};
 }
 
 function getProgress(pts, tier) {
   if (!tier.meta) return 100;
-  // Calculamos desde dónde empieza el nivel actual
   var inicio = (tier.t === 'plata') ? 50 : 0;
   var rango = tier.meta - inicio;
   var actuales = pts - inicio;
-  
-  var pct = Math.round((actuales / rango) * 100);
-  return Math.min(100, Math.max(0, pct));
+  return Math.min(100, Math.max(0, Math.round((actuales / rango) * 100)));
 }
 
-async function buscarOT() {
+async function buscarOT(isAuto = false) {
   const inputEl = document.getElementById('s-input');
-  // Limpiamos el input para que solo tenga dígitos (ej: 77778888)
-  const raw = inputEl.value.trim().replace(/\D/g, '');
+  let raw = inputEl.value.trim().replace(/\D/g, '');
+  if (raw.length > 8) raw = raw.substring(0, 8);
+  inputEl.value = raw;
+  
   const err = document.getElementById('search-error');
   const btn = document.querySelector('.search-btn');
 
-  if (raw.length < 8) { shakeInput(); return; }
+  if (raw.length < 8) { 
+    if(!isAuto) shakeInput(); 
+    return; 
+  }
 
+  if (btn.disabled && !isAuto) return;
+  
   err.classList.remove('show');
   btn.disabled = true;
-  const originalText = btn.innerText;
-  btn.innerText = 'Buscando...';
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '...';
 
   try {
-    // Buscamos coincidencia exacta con el número limpio
     const { data, error } = await supabaseClient
       .from('puntos_clientes')
-      .select('*')
+      .select('id, nombre, apellido, telefono, email, fecha_nacimiento, puntos_disp, puntos_ganados, ots, estatus, ultima_visita, nombre_software, historial')
       .eq('telefono', raw)
       .maybeSingle();
 
-    if (error || !data) {
-      document.getElementById('reg-prompt-text').innerHTML = "¿No eres miembro todavía?<br>Regístrate para empezar a acumular puntos.";
-      document.getElementById('reg-prompt').classList.add('show');
-      document.getElementById('reg-tel').value = raw; // Pre-llenar teléfono
-      legacyClient = null;
-      err.textContent = "Número no encontrado.";
-      err.classList.add('show');
-      shakeInput();
+    if (error) throw error;
+
+    if (!data) {
+      if(isAuto) {
+        localStorage.removeItem('LSL_Loyalty_Phone');
+      } else {
+        document.getElementById('reg-prompt-text').innerHTML = "¿No eres miembro todavía?<br>Regístrate para empezar a acumular puntos.";
+        document.getElementById('reg-prompt').classList.add('show');
+        err.textContent = "Número no encontrado.";
+        err.classList.add('show');
+        shakeInput();
+      }
       return;
     }
 
-    // Verificar si el perfil está incompleto (falta email o fecha de nacimiento)
+    // Save for next time
+    localStorage.setItem('LSL_Loyalty_Phone', raw);
+
+    // Profile Incomplete Check
     if (!data.email || !data.fecha_nacimiento) {
-      document.getElementById('reg-prompt-text').innerHTML = "¡Hola <b>" + (data.nombre || 'cliente') + "</b>! Encontramos tu cuenta básica.<br>Completa tu perfil para asegurar tus puntos.";
+      document.getElementById('reg-prompt-text').innerHTML = "¡Hola <b>" + (data.nombre || 'cliente') + "</b>! Completa tu perfil para asegurar tus puntos.";
       document.getElementById('reg-prompt').classList.add('show');
-      document.getElementById('reg-tel').value = raw;
       legacyClient = data;
-      err.textContent = "Perfil incompleto.";
-      err.classList.add('show');
       return;
     }
 
     mostrarTarjeta(data);
   } catch (err) {
     console.error('Error:', err);
-    alert('Error al conectar con la base de datos');
   } finally {
     btn.disabled = false;
-    btn.innerText = originalText;
+    btn.innerHTML = originalHtml;
   }
 }
 
@@ -342,12 +438,13 @@ function mostrarTarjeta(c) {
 }
 
 function goBack() {
-  document.getElementById('screen-card').classList.remove('visible');
-  document.getElementById('screen-register').classList.remove('visible');
-  document.getElementById('screen-search').classList.add('visible');
-  document.getElementById('s-input').value = '';
-  document.getElementById('search-error').classList.remove('show');
-  document.getElementById('reg-prompt').classList.remove('show');
+  if(confirm("¿Quieres cerrar sesión? La próxima vez tendrás que ingresar tu número de nuevo.")) {
+    localStorage.removeItem('LSL_Loyalty_Phone');
+    document.getElementById('screen-card').classList.remove('visible');
+    document.getElementById('screen-register').classList.remove('visible');
+    document.getElementById('screen-search').classList.add('visible');
+    document.getElementById('s-input').value = '';
+  }
 }
 
 function irARegistro() {
@@ -382,8 +479,8 @@ async function confirmarRegistro() {
   const fechaNac = document.getElementById('reg-fecha-nac').value;
   const btn = document.getElementById('reg-btn-submit');
 
-  if (!nombre || !apellido || tel.length < 8 || !email || !fechaNac) {
-    alert("Por favor completa todos los campos correctamente.");
+  if (!nombre || !apellido || tel.length < 8 || !fechaNac) {
+    alert("Por favor completa los campos obligatorios (*).");
     return;
   }
 
