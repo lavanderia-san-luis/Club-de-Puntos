@@ -99,12 +99,75 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 @media(max-width:440px){.pts-num{font-size:3.6rem}.card-inner{padding:22px 20px 18px}}
 /* Reg Styles */
+.reg-form {
+  width: 100%;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 28px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+.reg-group {
+  margin-bottom: 20px;
+}
+.reg-label {
+  display: block;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+  margin-left: 4px;
+}
+.reg-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 13px 18px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  color: #fff;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.reg-input:focus {
+  border-color: var(--teal2);
+  background: rgba(14,159,174,0.06);
+  box-shadow: 0 0 20px rgba(14,159,174,0.15);
+}
+.reg-input::placeholder {
+  color: rgba(255,255,255,0.15);
+}
+.reg-submit {
+  width: 100%;
+  background: linear-gradient(135deg, var(--teal), var(--teal2));
+  color: #fff;
+  border: none;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 8px 20px rgba(14,159,174,0.25);
+  margin-top: 10px;
+}
+.reg-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(14,159,174,0.4);
+  filter: brightness(1.1);
+}
+.reg-submit:active {
+  transform: scale(0.98);
+}
 .reg-prompt{margin-top:20px;padding:20px;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);border-radius:20px;text-align:center;display:none;animation:fadeUp .4s ease both}
 .reg-prompt.show{display:block}
 .reg-prompt p{font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.5;margin-bottom:16px}
-.reg-btn-link{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;padding:12px 24px;border-radius:12px;font-size:.85rem;font-weight:600;cursor:pointer;transition:transform .2s;box-shadow:0 4px 12px rgba(201,164,60,.2)}
+.reg-btn-link{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border:none;padding:12px 24px;border-radius:12px;font-size:.85rem;font-weight:600;cursor:pointer;transition:transform .2s;box-shadow:0 4px 12px rgba(14,159,174,.2)}
 .reg-btn-link:hover{transform:scale(1.03)}
-
 .reg-submit:disabled{opacity:.5;cursor:not-allowed}
 
 /* Floating WhatsApp Button */
