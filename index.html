@@ -535,71 +535,101 @@ function cancelarRegistro() {
 }
 
 async function confirmarRegistro() {
-  const nombre = document.getElementById('reg-nombre').value.trim();
-  const apellido = document.getElementById('reg-apellido').value.trim();
-  const tel = document.getElementById('reg-tel').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const fechaNac = document.getElementById('reg-fecha-nac').value;
+  // 1. Referencias a elementos del DOM
+  const nombreInput = document.getElementById('reg-nombre');
+  const apellidoInput = document.getElementById('reg-apellido');
+  const telInput = document.getElementById('reg-tel');
+  const emailInput = document.getElementById('reg-email');
+  const fechaNacInput = document.getElementById('reg-fecha-nac');
   const btn = document.getElementById('reg-btn-submit');
 
-  if (!nombre || !apellido || tel.length < 8 || !fechaNac) {
-    alert("Por favor completa los campos obligatorios (*).");
-    return;
-  }
+  // 2. Limpieza y Captura de datos
+  // Evitamos inyecciones básicas eliminando etiquetas HTML
+  const clean = (str) => str.replace(/[<>]/g, "").trim();
+  
+  const nom = clean(nombreInput.value);
+  const ape = clean(apellidoInput.value);
+  const tel = telInput.value.trim().replace(/\D/g, ''); // Solo números para evitar errores de formato
+  const mail = emailInput.value.trim().toLowerCase();
+  const nac = fechaNacInput.value;
 
-  // Validación de Correo Realista
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    alert("Por favor ingresa un correo electrónico válido.");
+  // Generamos el nombre_software idéntico al que usa el administrador en el Excel
+  const nombreSoftwareGenerado = `${nom} ${ape}`.replace(/\s+/g, ' ').trim().toUpperCase();
+
+  // 3. Validaciones de Negocio
+  if (!nom || !ape || tel.length < 8 || !nac) {
+    alert("Por favor completa todos los campos obligatorios.");
     return;
   }
 
   // Validación de Edad (Mínimo 18 años)
   const hoy = new Date();
-  const cumple = new Date(fechaNac);
+  const cumple = new Date(nac);
   let edad = hoy.getFullYear() - cumple.getFullYear();
-  const m = hoy.getMonth() - cumple.getMonth();
-  if (m < 0 || (m === 0 && hoy.getDate() < cumple.getDate())) {
+  if (hoy < new Date(hoy.getFullYear(), cumple.getMonth(), cumple.getDate())) {
     edad--;
   }
 
   if (edad < 18) {
-    alert("Debes ser mayor de 18 años para registrarte en el Club de Puntos.");
+    alert("Debes ser mayor de 18 años para participar en el programa de lealtad.");
     return;
   }
 
+  // 4. Inicio del Proceso de Guardado
   btn.disabled = true;
-  btn.innerText = "Procesando...";
-
-  // Objeto para UPSERT
-  const newClientData = {
-    nombre: nombre,
-    apellido: apellido,
-    telefono: tel,
-    email: email,
-    fecha_nacimiento: fechaNac,
-    nombre_software: legacyClient ? (legacyClient.nombre_software || (nombre + ' ' + apellido).trim()) : (nombre + ' ' + apellido).trim(),
-    puntos_disp: legacyClient ? legacyClient.puntos_disp : 0,
-    puntos_ganados: legacyClient ? legacyClient.puntos_ganados : 0,
-    ots: legacyClient ? legacyClient.ots : 0,
-    estatus: legacyClient ? legacyClient.estatus : 'Bronce'
-  };
+  btn.innerText = "Sincronizando perfil...";
 
   try {
-    const { data, error } = await supabaseClient
+    // PASO A: Guardar/Actualizar Perfil en la tabla 'puntos_clientes'
+    // Usamos UPSERT basado en el 'telefono' para actualizar si ya existe o crear si es nuevo
+    const { data: userData, error: errPuntos } = await supabaseClient
       .from('puntos_clientes')
-      .upsert(newClientData, { onConflict: 'telefono' })
+      .upsert({
+        nombre: nom,
+        apellido: ape,
+        telefono: tel,
+        email: mail,
+        fecha_nacimiento: nac,
+        nombre_software: nombreSoftwareGenerado,
+        es_registrado: true, // <--- Crucial para filtrar en el Dashboard
+        // Si el cliente ya existía en el Excel (legacyClient), mantenemos sus puntos y estatus
+        puntos_disp: legacyClient ? (legacyClient.puntos_disp || 0) : 0,
+        estatus: legacyClient ? (legacyClient.estatus || 'Bronce') : 'Bronce'
+      }, { onConflict: 'telefono' })
       .select()
       .single();
 
-    if (error) throw error;
+    if (errPuntos) throw errPuntos;
 
-    alert("¡Registro completado con éxito!");
-    mostrarTarjeta(data);
+    // PASO B: Asegurar el vínculo en 'directorio_clientes' (Tu padrón maestro)
+    // Esto vincula el nombre oficial del software con el teléfono del usuario
+    const { error: errDir } = await supabaseClient
+      .from('directorio_clientes')
+      .upsert({
+        nombre_cliente: nombreSoftwareGenerado,
+        telefono: tel
+      }, { onConflict: 'nombre_cliente' });
+
+    if (errDir) throw errDir;
+
+    // 5. Finalización con éxito
+    alert(`¡Bienvenido ${nom}! Tu perfil ha sido vinculado correctamente.`);
+    
+    // Guardamos en persistencia local para que no tenga que loguearse de nuevo
+    localStorage.setItem('LSL_Loyalty_Phone', tel);
+    
+    // Limpiamos la referencia temporal y cerramos el modal de registro
+    legacyClient = null;
+    document.getElementById('screen-register').classList.remove('visible');
+    
+    // Actualizamos la interfaz mostrando la tarjeta con los datos frescos de Supabase
+    mostrarTarjeta(userData);
+    
   } catch (err) {
-    console.error("Error en registro:", err);
-    alert("Hubo un error al guardar tus datos.");
+    console.error("Error crítico en el proceso de registro:", err.message);
+    alert("Hubo un problema al registrar tus datos: " + err.message);
   } finally {
+    // Restauramos el botón independientemente del resultado
     btn.disabled = false;
     btn.innerText = "Finalizar Registro";
   }
