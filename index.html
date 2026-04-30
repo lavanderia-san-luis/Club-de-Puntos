@@ -351,6 +351,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background:ra
 
   let legacyClient = null;
 
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  
   // Auto-Login Check on start
   window.onload = function() {
     const savedTel = localStorage.getItem('LSL_Loyalty_Phone');
