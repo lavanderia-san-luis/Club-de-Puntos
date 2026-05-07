@@ -377,119 +377,86 @@ function getProgress(pts, tier) {
 }
 
 async function buscarOT(isAuto = false) {
+  // 1. Declaración de elementos de la interfaz
   const inputEl = document.getElementById('s-input');
   const errEl = document.getElementById('search-error');
   const btn = document.querySelector('.search-btn');
+  const regPrompt = document.getElementById('reg-prompt');
   
-  // 1. Limpieza y formateo de entrada
+  // Guardamos el contenido original del botón para restaurarlo luego
+  const originalHtml = btn ? btn.innerHTML : '&#128269;';
+
+  // 2. Validación de entrada
   let raw = inputEl.value.trim().replace(/\D/g, '');
   if (raw.length > 8) raw = raw.substring(0, 8);
   inputEl.value = raw;
 
-  // 2. Validación de longitud mínima
   if (raw.length < 8) { 
     if(!isAuto && raw.length > 0) shakeInput(); 
     return; 
   }
 
+  // 3. Preparación de la UI para la búsqueda
+  if (errEl) errEl.classList.remove('show');
+  if (regPrompt) regPrompt.classList.remove('show');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = '...';
+  }
+
   try {
-    // 3. Preparación de la interfaz (UI)
-    if (errEl) errEl.style.display = 'none';
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span>'; // Opcional: un icono de carga
-    }
+    // 4. Ejecución de la consulta en Supabase
+    // La variable 'data' se define AQUÍ, dentro del try
+    const { data, error } = await supabaseClient
+      .from('puntos_clientes')
+      .select('id, nombre, apellido, telefono, email, fecha_nacimiento, puntos_disp, puntos_ganados, ots, estatus, ultima_visita, nombre_software')
+      .eq('telefono', raw)
+      .maybeSingle();
 
-    // 4. Consulta a Supabase
-    // Traemos solo los campos necesarios por seguridad y eficiencia
-// 4. Consulta a Supabase
-    try {
-        const { data, error } = await supabaseClient
-            .from('puntos_clientes')
-            .select('id, nombre, apellido, telefono, email, fecha_nacimiento, puntos_disp, puntos_ganados, ots, estatus, ultima_visita, nombre_software, historial')
-            .eq('telefono', raw)
-            .maybeSingle();
+    if (error) throw error;
 
-        if (error) throw error;
+    // 5. Lógica según el resultado de 'data'
+    if (data) {
+      localStorage.setItem('LSL_Loyalty_Phone', raw);
 
-        // 5. Manejo de resultados
-        if (data) {
-            console.log("Cliente encontrado:", data);
-            
-            // Guardamos para la próxima vez
-            localStorage.setItem('LSL_Loyalty_Phone', raw);
+      // Verificación de perfil incompleto
+      if (!data.email || !data.fecha_nacimiento) {
+        document.getElementById('reg-prompt-text').innerHTML = `¡Hola <b>${data.nombre || 'cliente'}</b>! Completa tu perfil para asegurar tus puntos.`;
+        if (regPrompt) regPrompt.classList.add('show');
+        legacyClient = data;
+        return; 
+      }
 
-            // Verificación de Perfil Incompleto
-            if (!data.email || !data.fecha_nacimiento) {
-                const promptText = document.getElementById('reg-prompt-text');
-                const regPrompt = document.getElementById('reg-prompt');
-                
-                if (promptText) {
-                    promptText.innerHTML = `¡Hola <b>${data.nombre || 'cliente'}</b>! Completa tu perfil para asegurar tus puntos.`;
-                }
-                if (regPrompt) regPrompt.classList.add('show');
-                
-                legacyClient = data; // Guardamos referencia para el formulario de registro
-                return;
-            }
+      mostrarTarjeta(data);
 
-            // Si todo está completo, mostramos la tarjeta
-            mostrarTarjeta(data);
-
-        } else {
-            // Caso: No se encontró el número
-            if (isAuto) {
-                localStorage.removeItem('LSL_Loyalty_Phone');
-            } else {
-                const promptText = document.getElementById('reg-prompt-text');
-                const regPrompt = document.getElementById('reg-prompt');
-                const errEl = document.getElementById('search-error');
-
-                if (promptText) {
-                    promptText.innerHTML = "¿No eres miembro todavía?<br>Regístrate para empezar a acumular puntos.";
-                }
-                if (regPrompt) regPrompt.classList.add('show');
-                
-                if (errEl) {
-                    errEl.textContent = "Número no encontrado.";
-                    errEl.classList.add('show');
-                }
-                shakeInput();
-            }
-        }
-
-    } catch (err) {
-        console.error("Error crítico en la búsqueda:", err.message);
-        const errEl = document.getElementById('search-error');
+    } else {
+      // Caso: No se encontró el número
+      if (isAuto) {
+        localStorage.removeItem('LSL_Loyalty_Phone');
+      } else {
+        document.getElementById('reg-prompt-text').innerHTML = "¿No eres miembro todavía?<br>Regístrate para empezar a acumular puntos.";
+        if (regPrompt) regPrompt.classList.add('show');
         if (errEl) {
-            errEl.innerText = "Error de conexión. Intenta de nuevo.";
-            errEl.classList.add('show');
+          errEl.textContent = "Número no encontrado.";
+          errEl.classList.add('show');
         }
-    } finally {
-        // 6. Restablecer estado del botón
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '&#128269;'; // Restaura el icono de lupa o el texto "Buscar"
-        }
+        shakeInput();
+      }
     }
 
-    // Save for next time
-    localStorage.setItem('LSL_Loyalty_Phone', raw);
-
-    // Profile Incomplete Check
-    if (!data.email || !data.fecha_nacimiento) {
-      document.getElementById('reg-prompt-text').innerHTML = "¡Hola <b>" + (data.nombre || 'cliente') + "</b>! Completa tu perfil para asegurar tus puntos.";
-      document.getElementById('reg-prompt').classList.add('show');
-      legacyClient = data;
-      return;
-    }
-
-    mostrarTarjeta(data);
   } catch (err) {
-    console.error('Error:', err);
+    console.error("Error en la búsqueda:", err.message);
+    if (errEl) {
+      errEl.innerText = "Error de conexión. Intenta de nuevo.";
+      errEl.classList.add('show');
+    }
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalHtml;
+    // 6. Restauración final de la UI
+    // Usamos 'originalHtml' que guardamos al puro inicio
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml; 
+    }
   }
 }
 
