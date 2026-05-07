@@ -439,13 +439,6 @@ async function buscarOT(isAuto = false) {
   }
 }
 
-// Función auxiliar para el efecto visual de error
-function shakeInput() {
-  const inputEl = document.getElementById('s-input');
-  inputEl.classList.add('shake');
-  setTimeout(() => inputEl.classList.remove('shake'), 500);
-}
-
   if (btn.disabled && !isAuto) return;
   
   err.classList.remove('show');
@@ -703,38 +696,77 @@ function animPts(target) {
   })(s);
 }
 
+/* --- FUNCIONES DE UTILIDAD --- */
+
 function shakeInput() {
-  var el = document.getElementById('s-input');
-  el.style.animation = 'none'; el.offsetHeight;
+  const el = document.getElementById('s-input');
+  if (!el) return;
+  el.style.animation = 'none'; 
+  el.offsetHeight; // Truco para reiniciar la animación (reflow)
   el.style.animation = 'shake .4s ease';
   el.style.borderColor = '#E05555';
-  setTimeout(function(){ el.style.borderColor=''; el.style.animation=''; }, 700);
+  setTimeout(() => { 
+    el.style.borderColor = ''; 
+    el.style.animation = ''; 
+  }, 700);
 }
-  async function registrarApertura() {
-  try {
-    // 1. Obtener la IP (Usando un servicio externo gratuito)
-    const ipResponse = await fetch('https://api.ipify.org?format=json');
-    const { ip } = await ipResponse.json();
 
-    // 2. Recopilar metadatos del navegador
-    const datos = {
+/* --- LOG DE ANALÍTICAS (APERTURA) --- */
+
+/**
+ * Registra la apertura de la página capturando IP y metadatos.
+ */
+async function registrarApertura() {
+  try {
+    console.log("Iniciando registro de apertura...");
+
+    // 1. Intentar obtener la IP pública (si falla, el proceso continúa)
+    let ip = "Desconocida";
+    try {
+      // Agregamos un controlador de tiempo para que no tarde demasiado
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 4000);
+
+      const ipResponse = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+      const ipData = await ipResponse.json();
+      ip = ipData.ip;
+      clearTimeout(id);
+    } catch (ipErr) {
+      console.warn("No se pudo obtener la IP (posible bloqueo o timeout), continuando...");
+    }
+
+    // 2. Recopilar datos del entorno del cliente
+    const datosApertura = {
       ip_address: ip,
       user_agent: navigator.userAgent,
       idioma: navigator.language,
-      resolucion_pantalla: `${window.screen.width}x${window.screen.height}`
+      resolucion_pantalla: `${window.screen.width}x${window.screen.height}`,
+      pagina_origen: window.location.pathname,
+      fecha_apertura: new Date().toISOString()
     };
 
-    // 3. Guardar en Supabase
-    const { error } = await client
+    // 3. Enviar a la tabla en Supabase
+    // Usamos 'supabaseClient' o 'client' según como lo definiste arriba
+    const { error } = await supabaseClient
       .from('registros_apertura')
-      .insert([datos]);
+      .insert([datosApertura]);
 
     if (error) throw error;
-    
-    console.log("Apertura registrada exitosamente.");
+
+    console.log("Apertura registrada exitosamente para IP:", ip);
+
   } catch (err) {
-    console.error("Error al registrar apertura:", err);
+    console.error("Error crítico al registrar apertura:", err.message);
   }
+}
+
+/* --- INICIALIZACIÓN --- */
+
+// Ejecutar automáticamente cuando la página esté lista
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', registrarApertura);
+} else {
+  registrarApertura();
 }
 
 // Ejecutar cuando la página esté lista
