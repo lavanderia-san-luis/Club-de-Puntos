@@ -378,17 +378,73 @@ function getProgress(pts, tier) {
 
 async function buscarOT(isAuto = false) {
   const inputEl = document.getElementById('s-input');
+  const errEl = document.getElementById('search-error');
+  const btn = document.querySelector('.search-btn');
+  
+  // 1. Limpieza y formateo de entrada
   let raw = inputEl.value.trim().replace(/\D/g, '');
   if (raw.length > 8) raw = raw.substring(0, 8);
   inputEl.value = raw;
-  
-  const err = document.getElementById('search-error');
-  const btn = document.querySelector('.search-btn');
 
+  // 2. Validación de longitud mínima
   if (raw.length < 8) { 
-    if(!isAuto) shakeInput(); 
+    if(!isAuto && raw.length > 0) shakeInput(); 
     return; 
   }
+
+  try {
+    // 3. Preparación de la interfaz (UI)
+    if (errEl) errEl.style.display = 'none';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>'; // Opcional: un icono de carga
+    }
+
+    // 4. Consulta a Supabase
+    // Traemos solo los campos necesarios por seguridad y eficiencia
+    const { data, error } = await supabase
+      .from('puntos_clientes')
+      .select('nombre, apellido, puntos, telefono, nombre_software')
+      .eq('telefono', raw)
+      .maybeSingle(); // Usamos maybeSingle para que no lance error si no hay resultados
+
+    if (error) throw error;
+
+    // 5. Manejo de resultados
+    if (data) {
+      console.log("Cliente encontrado:", data);
+      // Aquí llamas a la función que muestra los datos en tu UI
+      mostrarResultadoCliente(data); 
+    } else {
+      // Caso: No se encontró el número
+      if (errEl) {
+        errEl.innerText = "No se encontró ningún cliente con ese número.";
+        errEl.style.display = 'block';
+      }
+      if (!isAuto) shakeInput();
+    }
+
+  } catch (err) {
+    console.error("Error en la búsqueda:", err.message);
+    if (errEl) {
+      errEl.innerText = "Error de conexión. Intenta de nuevo.";
+      errEl.style.display = 'block';
+    }
+  } finally {
+    // 6. Restablecer estado del botón
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = "Buscar"; 
+    }
+  }
+}
+
+// Función auxiliar para el efecto visual de error
+function shakeInput() {
+  const inputEl = document.getElementById('s-input');
+  inputEl.classList.add('shake');
+  setTimeout(() => inputEl.classList.remove('shake'), 500);
+}
 
   if (btn.disabled && !isAuto) return;
   
