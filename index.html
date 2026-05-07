@@ -402,71 +402,77 @@ async function buscarOT(isAuto = false) {
 
     // 4. Consulta a Supabase
     // Traemos solo los campos necesarios por seguridad y eficiencia
-    const { data, error } = await supabase
-      .from('puntos_clientes')
-      .select('nombre, apellido, puntos, telefono, nombre_software')
-      .eq('telefono', raw)
-      .maybeSingle(); // Usamos maybeSingle para que no lance error si no hay resultados
+// 4. Consulta a Supabase
+    try {
+        const { data, error } = await supabaseClient
+            .from('puntos_clientes')
+            .select('id, nombre, apellido, telefono, email, fecha_nacimiento, puntos_disp, puntos_ganados, ots, estatus, ultima_visita, nombre_software, historial')
+            .eq('telefono', raw)
+            .maybeSingle();
 
-    if (error) throw error;
+        if (error) throw error;
 
-    // 5. Manejo de resultados
-    if (data) {
-      console.log("Cliente encontrado:", data);
-      // Aquí llamas a la función que muestra los datos en tu UI
-      mostrarResultadoCliente(data); 
-    } else {
-      // Caso: No se encontró el número
-      if (errEl) {
-        errEl.innerText = "No se encontró ningún cliente con ese número.";
-        errEl.style.display = 'block';
-      }
-      if (!isAuto) shakeInput();
+        // 5. Manejo de resultados
+        if (data) {
+            console.log("Cliente encontrado:", data);
+            
+            // Guardamos para la próxima vez
+            localStorage.setItem('LSL_Loyalty_Phone', raw);
+
+            // Verificación de Perfil Incompleto
+            if (!data.email || !data.fecha_nacimiento) {
+                const promptText = document.getElementById('reg-prompt-text');
+                const regPrompt = document.getElementById('reg-prompt');
+                
+                if (promptText) {
+                    promptText.innerHTML = `¡Hola <b>${data.nombre || 'cliente'}</b>! Completa tu perfil para asegurar tus puntos.`;
+                }
+                if (regPrompt) regPrompt.classList.add('show');
+                
+                legacyClient = data; // Guardamos referencia para el formulario de registro
+                return;
+            }
+
+            // Si todo está completo, mostramos la tarjeta
+            mostrarTarjeta(data);
+
+        } else {
+            // Caso: No se encontró el número
+            if (isAuto) {
+                localStorage.removeItem('LSL_Loyalty_Phone');
+            } else {
+                const promptText = document.getElementById('reg-prompt-text');
+                const regPrompt = document.getElementById('reg-prompt');
+                const errEl = document.getElementById('search-error');
+
+                if (promptText) {
+                    promptText.innerHTML = "¿No eres miembro todavía?<br>Regístrate para empezar a acumular puntos.";
+                }
+                if (regPrompt) regPrompt.classList.add('show');
+                
+                if (errEl) {
+                    errEl.textContent = "Número no encontrado.";
+                    errEl.classList.add('show');
+                }
+                shakeInput();
+            }
+        }
+
+    } catch (err) {
+        console.error("Error crítico en la búsqueda:", err.message);
+        const errEl = document.getElementById('search-error');
+        if (errEl) {
+            errEl.innerText = "Error de conexión. Intenta de nuevo.";
+            errEl.classList.add('show');
+        }
+    } finally {
+        // 6. Restablecer estado del botón
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '&#128269;'; // Restaura el icono de lupa o el texto "Buscar"
+        }
     }
-
-  } catch (err) {
-    console.error("Error en la búsqueda:", err.message);
-    if (errEl) {
-      errEl.innerText = "Error de conexión. Intenta de nuevo.";
-      errEl.style.display = 'block';
-    }
-  } finally {
-    // 6. Restablecer estado del botón
-    if (btn) {
-      btn.disabled = false;
-      btn.innerText = "Buscar"; 
-    }
-  }
-}
-
-  if (btn.disabled && !isAuto) return;
-  
-  err.classList.remove('show');
-  btn.disabled = true;
-  const originalHtml = btn.innerHTML;
-  btn.innerHTML = '...';
-
-  try {
-    const { data, error } = await supabaseClient
-      .from('puntos_clientes')
-      .select('id, nombre, apellido, telefono, email, fecha_nacimiento, puntos_disp, puntos_ganados, ots, estatus, ultima_visita, nombre_software, historial')
-      .eq('telefono', raw)
-      .maybeSingle();
-
-    if (error) throw error;
-
-    if (!data) {
-      if(isAuto) {
-        localStorage.removeItem('LSL_Loyalty_Phone');
-      } else {
-        document.getElementById('reg-prompt-text').innerHTML = "¿No eres miembro todavía?<br>Regístrate para empezar a acumular puntos.";
-        document.getElementById('reg-prompt').classList.add('show');
-        err.textContent = "Número no encontrado.";
-        err.classList.add('show');
-        shakeInput();
-      }
-      return;
-    }
+} // <--- Aquí cierra correctamente la función buscarOT
 
     // Save for next time
     localStorage.setItem('LSL_Loyalty_Phone', raw);
