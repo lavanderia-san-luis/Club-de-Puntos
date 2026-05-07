@@ -546,14 +546,16 @@ async function confirmarRegistro() {
   const btn = document.getElementById('reg-btn-submit');
 
   // 2. Limpieza y Captura de datos
+  // Evitamos inyecciones básicas eliminando etiquetas HTML
   const clean = (str) => str.replace(/[<>]/g, "").trim();
   
   const nom = clean(nombreInput.value);
   const ape = clean(apellidoInput.value);
-  const tel = telInput.value.trim().replace(/\D/g, ''); 
+  const tel = telInput.value.trim().replace(/\D/g, ''); // Solo números para evitar errores de formato
   const mail = emailInput.value.trim().toLowerCase();
   const nac = fechaNacInput.value;
 
+  // Generamos el nombre_software idéntico al que usa el administrador en el Excel
   const nombreSoftwareGenerado = `${nom} ${ape}`.replace(/\s+/g, ' ').trim().toUpperCase();
 
   // 3. Validaciones de Negocio
@@ -561,56 +563,6 @@ async function confirmarRegistro() {
     alert("Por favor completa todos los campos obligatorios.");
     return;
   }
-
-  // --- INICIO DE LA CORRECCIÓN PARA RLS ---
-
-  try {
-    // Deshabilitar el botón para evitar múltiples clics
-    btn.disabled = true;
-    btn.innerText = "Registrando...";
-
-    // A. Obtener el usuario actual (necesario para el RLS)
-    // Si usas Supabase, intentamos obtener la sesión
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    // B. Preparar el objeto de inserción
-    // Importante: El campo 'user_id' debe coincidir con el nombre de tu columna en la DB
-    const datosAInsertar = {
-      nombre: nom,
-      apellido: ape,
-      telefono: tel,
-      email: mail,
-      fecha_nacimiento: nac,
-      nombre_software: nombreSoftwareGenerado,
-      puntos: 0, // O el valor inicial que desees
-      user_id: user ? user.id : null // Si tienes RLS para 'anon', esto puede ser null
-    };
-
-    // C. Ejecutar la inserción en la tabla
-    const { data, error } = await supabase
-      .from('puntos_clientes')
-      .insert([datosAInsertar]);
-
-    if (error) {
-      // Si el error dice "new row violates row-level security policy"
-      // significa que la política de tu DB no permite esta inserción.
-      throw error;
-    }
-
-    alert("¡Registro completado con éxito!");
-    // Opcional: limpiar formulario o redireccionar
-    
-  } catch (err) {
-    console.error("Error crítico en el proceso de registro:", err.message);
-    alert("Error al registrar: " + err.message);
-  } finally {
-    // Reestablecer el botón
-    btn.disabled = false;
-    btn.innerText = "Finalizar Registro";
-  }
-  
-  // --- FIN DE LA CORRECCIÓN ---
-}
 
   // Validación de Edad (Mínimo 18 años)
   const hoy = new Date();
