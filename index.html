@@ -598,16 +598,16 @@ async function confirmarRegistro() {
   try {
     // PASO A: Guardar/Actualizar Perfil en 'puntos_clientes'
     const payloadPuntos = {
-      nombre: nom,
-      apellido: ape,
-      telefono: tel,
-      email: mail,
-      fecha_nacimiento: nac,
-      nombre_software: nombreSoftwareFinal, // <--- Protegido aquí
-      es_registrado: true,
-      puntos_disp: legacyClient ? (legacyClient.puntos_disp || 0) : 0,
-      estatus: legacyClient ? (legacyClient.estatus || 'Bronce') : 'Bronce'
-    };
+    nombre: nom,
+    apellido: ape,
+    telefono: tel,
+    email: mail, // 
+    fecha_nacimiento: nac,
+    nombre_software: nombreSoftwareFinal,
+    es_registrado: true,
+    fecha_registro: new Date().toISOString()
+    // Quitamos puntos_disp y estatus de aquí para que la DB maneje su estado intacto
+};
 
     const { data: userData, error: errPuntos } = await supabaseClient
       .from('puntos_clientes')
