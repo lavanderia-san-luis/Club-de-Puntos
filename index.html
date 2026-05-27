@@ -611,7 +611,7 @@ async function confirmarRegistro() {
 
     const { data: userData, error: errPuntos } = await supabaseClient
       .from('puntos_clientes')
-      .upsert(payloadPuntos, { onConflict: 'telefono' })
+      .upsert(payloadPuntos, { onConflict: 'unique_telefono_nuevo' })
       .select()
       .single();
 
