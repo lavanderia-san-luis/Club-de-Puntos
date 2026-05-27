@@ -558,90 +558,86 @@ function cancelarRegistro() {
 }
 
 async function confirmarRegistro() {
-  // 1. Referencias y 2. Limpieza (Se mantiene igual...)
-  const nombreInput = document.getElementById('reg-nombre');
-  const apellidoInput = document.getElementById('reg-apellido');
-  const telInput = document.getElementById('reg-tel');
-  const emailInput = document.getElementById('reg-email');
-  const fechaNacInput = document.getElementById('reg-fecha-nac');
-  const btn = document.getElementById('reg-btn-submit');
+    // 1. Referencias y 2. Limpieza (Se mantiene igual...)
+    const nombreInput = document.getElementById('reg-nombre');
+    const apellidoInput = document.getElementById('reg-apellido');
+    const telInput = document.getElementById('reg-tel');
+    const emailInput = document.getElementById('reg-email');
+    const fechaNacInput = document.getElementById('reg-fecha-nac');
+    const btn = document.getElementById('reg-btn-submit');
 
-  const clean = (str) => str.replace(/[<>]/g, "").trim();
-  const nom = clean(nombreInput.value);
-  const ape = clean(apellidoInput.value);
-  const tel = telInput.value.trim().replace(/\D/g, '');
-  const mail = emailInput.value.trim().toLowerCase();
-  const nac = fechaNacInput.value;
+    const clean = (str) => str.replace(/[<>]/g, "").trim();
+    const nom = clean(nombreInput.value);
+    const ape = clean(apellidoInput.value);
+    const tel = telInput.value.trim().replace(/\D/g, '');
+    const mail = emailInput.value.trim().toLowerCase();
+    const nac = fechaNacInput.value;
 
-  // 3. Validaciones de Negocio (Se mantiene igual...)
-  if (!nom || !ape || tel.length < 8 || !nac) {
-    alert("Por favor completa todos los campos obligatorios.");
-    return;
-  }
+    // 3. Validaciones de Negocio (Se mantiene igual...)
+    if (!nom || !ape || tel.length < 8 || !nac) {
+        alert("Por favor completa todos los campos obligatorios.");
+        return;
+    }
 
-  // --- LÓGICA DE PROTECCIÓN DE NOMBRE_SOFTWARE ---
-  
-  // Solo generamos y enviamos el nombre_software si NO tenemos un legacyClient.
-  // Si el cliente ya existe (legacyClient), usaremos el nombre que ya viene de la DB.
-  let nombreSoftwareFinal;
-  
-  if (legacyClient && legacyClient.nombre_software) {
-    nombreSoftwareFinal = legacyClient.nombre_software; 
-  } else {
-    nombreSoftwareFinal = `${nom} ${ape}`.replace(/\s+/g, ' ').trim().toUpperCase();
-  }
+    // --- LÓGICA DE PROTECCIÓN DE NOMBRE_SOFTWARE ---
+    let nombreSoftwareFinal;
+    if (legacyClient && legacyClient.nombre_software) {
+        nombreSoftwareFinal = legacyClient.nombre_software; 
+    } else {
+        nombreSoftwareFinal = `${nom} ${ape}`.replace(/\s+/g, ' ').trim().toUpperCase();
+    }
 
-  // 4. Inicio del Proceso de Guardado
-  btn.disabled = true;
-  btn.innerText = "Sincronizando perfil...";
+    // 4. Inicio del Proceso de Guardado
+    btn.disabled = true;
+    btn.innerText = "Sincronizando perfil...";
 
-  try {
-    // PASO A: Guardar/Actualizar Perfil en 'puntos_clientes'
-    const payloadPuntos = {
-    nombre: nom,
-    apellido: ape,
-    telefono: tel,
-    email: mail, // 
-    fecha_nacimiento: nac,
-    nombre_software: nombreSoftwareFinal,
-    es_registrado: true,
-    fecha_registro: new Date().toISOString()
-    // Quitamos puntos_disp y estatus de aquí para que la DB maneje su estado intacto
-};
+    try {
+        // PASO A: Guardar/Actualizar Perfil en 'puntos_clientes'
+        const payloadPuntos = {
+            nombre: nom,
+            apellido: ape,
+            telefono: tel, // Actúa como identificador, no se modificará el de la DB si ya existe
+            email: mail, 
+            fecha_nacimiento: nac,
+            nombre_software: nombreSoftwareFinal,
+            es_registrado: true,
+            fecha_registro: new Date().toISOString()
+        };
 
-    const { data: userData, error: errPuntos } = await supabaseClient
-      .from('puntos_clientes')
-      .upsert(payloadPuntos, { onConflict: 'unique_telefono_nuevo' })
-      .select()
-      .single();
+        const { data: userData, error: errPuntos } = await supabaseClient
+            .from('puntos_clientes')
+            .upsert(payloadPuntos, { 
+                onConflict: 'telefono' // 👈 Volvemos al estándar que Supabase lee nativamente
+            })
+            .select()
+            .single();
 
-    if (errPuntos) throw errPuntos;
+        if (errPuntos) throw errPuntos;
 
-    // PASO B: Vínculo en 'directorio_clientes'
-    // IMPORTANTE: Aquí también usamos nombreSoftwareFinal para no crear duplicados erróneos
-    const { error: errDir } = await supabaseClient
-      .from('directorio_clientes')
-      .upsert({
-        nombre_cliente: nombreSoftwareFinal,
-        telefono: tel
-      }, { onConflict: 'nombre_cliente' });
+        // PASO B: Vínculo en 'directorio_clientes'
+        const { error: errDir } = await supabaseClient
+            .from('directorio_clientes')
+            .upsert({
+                nombre_cliente: nombreSoftwareFinal,
+                telefono: tel
+            }, { onConflict: 'nombre_cliente' });
 
-    if (errDir) throw errDir;
+        if (errDir) throw errDir;
 
-    // 5. Finalización con éxito
-    alert(`¡Bienvenido ${nom}! Perfil vinculado.`);
-    localStorage.setItem('LSL_Loyalty_Phone', tel);
-    legacyClient = null;
-    document.getElementById('screen-register').classList.remove('visible');
-    mostrarTarjeta(userData);
-    
-  } catch (err) {
-    console.error("Error:", err.message);
-    alert("Error: " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerText = "Finalizar Registro";
-  }
+        // 5. Finalización con éxito
+        alert(`¡Bienvenido ${nom}! Perfil vinculado.`);
+        localStorage.setItem('LSL_Loyalty_Phone', tel);
+        legacyClient = null;
+        document.getElementById('screen-register').classList.remove('visible');
+        mostrarTarjeta(userData);
+        
+    } catch (err) {
+        console.error("Error:", err.message);
+        alert("Error: " + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Finalizar Registro";
+    }
 }
 
 function animPts(target) {
