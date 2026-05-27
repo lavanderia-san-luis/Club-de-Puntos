@@ -620,7 +620,7 @@ async function confirmarRegistro() {
             .upsert({
                 nombre_cliente: nombreSoftwareFinal,
                 telefono: tel
-            }, { onConflict: 'nombre_cliente' });
+            }, { onConflict: 'telefono' });
 
         if (errDir) throw errDir;
 
