@@ -625,7 +625,7 @@ async function confirmarRegistro() {
         if (errDir) throw errDir;
 
         // 5. Finalización con éxito
-        alert(`¡Bienvenido ${nom}! Perfil vinculado.`);
+        alert(`¡Ahora eres parte del club de puntos ${nom}!`);
         localStorage.setItem('LSL_Loyalty_Phone', tel);
         legacyClient = null;
         document.getElementById('screen-register').classList.remove('visible');
