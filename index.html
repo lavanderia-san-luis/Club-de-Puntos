@@ -409,7 +409,7 @@ async function buscarOT(isAuto = false) {
     // La variable 'data' se define AQUÍ, dentro del try
     const { data, error } = await supabaseClient
       .from('puntos_clientes')
-      .select('id, nombre, apellido, telefono, email, fecha_nacimiento, puntos_disp, puntos_ganados, ots, estatus, ultima_visita, nombre_software')
+      .select('id, nombre, apellido, telefono, email, fecha_nacimiento, puntos_disp, puntos_ganados, canjeados, ots, estatus, ultima_visita, nombre_software')
       .eq('telefono', raw)
       .maybeSingle();
 
@@ -461,7 +461,10 @@ async function buscarOT(isAuto = false) {
 }
 
 function mostrarTarjeta(c) {
-  const puntos = c.puntos_disp || 0;
+  const ganados = c.puntos_ganados || 0;
+  const canjeados = c.canjeados || 0;
+  const puntos = ganados - canjeados; 
+
   const tier = getTier(puntos);
   const prog = getProgress(puntos, tier);
   
