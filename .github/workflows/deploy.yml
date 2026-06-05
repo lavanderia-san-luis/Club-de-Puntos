@@ -14,11 +14,12 @@ jobs:
 
       # Este paso busca las marcas de posición en tu archivo JS y las cambia por tus secretos de GitHub
 # Este paso busca las marcas de posición en tu HTML y las cambia por tus secretos
+      # Este paso busca las marcas de posición en tu HTML y las cambia por tus secretos
       - name: Inyectar Secretos en el código
         run: |
-          sed -i "s|PROCESS_ENV_SUPABASE_URL|${{ secrets.SUPABASE_URL }}|g" bofv97efvoq357bg.html
-          sed -i "s|PROCESS_ENV_SUPABASE_KEY|${{ secrets.SUPABASE_KEY }}|g" bofv97efvoq357bg.html
-          sed -i "s|PROCESS_ENV_ADMIN_CODE|${{ secrets.ADMIN_CODE }}|g" bofv97efvoq357bg.html
+          sed -i -E "s|PROCESS_ENV_SUPABASE_URL|${{ secrets.SUPABASE_URL }}|g" bofv97efvoq357bg.html
+          sed -i -E "s|PROCESS_ENV_SUPABASE_KEY|${{ secrets.SUPABASE_KEY }}|g" bofv97efvoq357bg.html
+          sed -i -E "s|PROCESS_ENV_ADMIN_CODE|${{ secrets.ADMIN_CODE }}|g" bofv97efvoq357bg.html
 
       # Paso de ejemplo para desplegar en GitHub Pages (ajústalo según tu hosting)
       - name: Deploy to GitHub Pages
