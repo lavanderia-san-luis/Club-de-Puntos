@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mis Puntos - Lavanderia San Luis</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--ink:#0B1520;--teal:#0E9FAE;--teal2:#1BBDCF;--teal3:#7DE0EA;--gold:#C9A43C;--gold2:#E8C55A;--gold3:#F6DB90;--sil:#7A8FA6;--sil2:#A8BECE;--bro:#9A6040;--bro2:#C8865C}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100dvh;background:var(--ink);font-family:'Outfit',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px 48px;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% -5%,rgba(14,159,174,.14) 0%,transparent 65%),radial-gradient(ellipse 50% 40% at 100% 110%,rgba(14,159,174,.07) 0%,transparent 60%)}
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:420px;animation:fadeUp .5s ease both}
+.screen.visible{display:flex}
+.brand{text-align:center;margin-bottom:36px}
+.brand-logo{width:110px;height:110px;margin:0 auto 14px;filter:drop-shadow(0 0 28px rgba(14,159,174,.3));animation:logoIn .8s cubic-bezier(.34,1.42,.64,1) both}
+.brand-logo img{width:100%;height:100%;object-fit:contain}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:#fff;letter-spacing:.04em;line-height:1.15}
+.brand-tagline{font-size:.68rem;color:var(--teal3);letter-spacing:.2em;text-transform:uppercase;margin-top:6px;opacity:.7}
+.search-label{font-size:.68rem;color:rgba(255,255,255,.35);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;display:block;align-self:flex-start}
+.search-wrap{position:relative;width:100%;margin-bottom:10px}
+.search-field{width:100%;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:15px 56px 15px 60px;font-family:'DM Mono',monospace;font-size:1.05rem;color:#fff;outline:none;letter-spacing:.06em;transition:border-color .3s,background .3s;-moz-appearance:textfield}
+.search-prefix{position:absolute;left:20px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.25);font-family:'DM Mono',monospace;font-size:1rem;pointer-events:none}
+.search-field::-webkit-outer-spin-button,.search-field::-webkit-inner-spin-button{-webkit-appearance:none}
+.search-field::placeholder{color:rgba(255,255,255,.2);font-size:.9rem;letter-spacing:.02em}
+.search-field:focus{border-color:var(--teal);background:rgba(14,159,174,.08)}
+.search-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;cursor:pointer;display:grid;place-items:center;font-size:1rem;transition:transform .15s,box-shadow .2s;box-shadow:0 3px 12px rgba(14,159,174,.35)}
+.search-btn:hover{transform:translateY(-50%) scale(1.07);box-shadow:0 5px 18px rgba(14,159,174,.5)}
+.search-hint{font-size:.72rem;color:rgba(255,255,255,.2);text-align:center;line-height:1.8;margin-top:6px}
+.search-error{background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.25);border-radius:12px;padding:12px 16px;font-size:.82rem;color:#F08080;text-align:center;margin-top:10px;display:none;animation:fadeUp .3s ease both}
+.search-error.show{display:block}
+.card-screen{width:100%;max-width:420px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;color:rgba(255,255,255,.28);cursor:pointer;margin-bottom:20px;background:none;border:none;font-family:'Outfit',sans-serif;transition:color .2s;padding:4px 0}
+.back-btn:hover{color:rgba(255,255,255,.6)}
+.card{width:100%;border-radius:28px;overflow:hidden;position:relative;box-shadow:0 2px 0 rgba(255,255,255,.05) inset,0 40px 80px rgba(0,0,0,.7),0 12px 30px rgba(0,0,0,.4);animation:cardIn .65s cubic-bezier(.34,1.42,.64,1) both}
+.card.oro{background:linear-gradient(145deg,#140e03 0%,#2e1f04 50%,#140e03 100%)}
+.card.plata{background:linear-gradient(145deg,#0a1018 0%,#152030 50%,#0a1018 100%)}
+.card.bronce{background:linear-gradient(145deg,#130903 0%,#261407 50%,#130903 100%)}
+.card-deco{position:absolute;border-radius:50%;pointer-events:none}
+.card.oro .card-deco{background:radial-gradient(circle,rgba(201,164,60,.18),transparent)}
+.card.plata .card-deco{background:radial-gradient(circle,rgba(122,143,166,.14),transparent)}
+.card.bronce .card-deco{background:radial-gradient(circle,rgba(154,96,64,.16),transparent)}
+.deco-1{width:220px;height:220px;top:-70px;right:-70px}
+.deco-2{width:160px;height:160px;bottom:-50px;left:-50px}
+.card-shimmer{position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.045) 50%,transparent 62%);background-size:250% 100%;animation:shimmer 5s ease-in-out infinite}
+.card-inner{position:relative;z-index:2;padding:26px 26px 22px}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.card-head-logo{width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;overflow:hidden;flex-shrink:0}
+.card-head-logo img{width:34px;height:34px;object-fit:contain}
+.ch-center{flex:1;padding:0 12px}
+.ch-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:rgba(255,255,255,.8)}
+.ch-sub{font-size:.58rem;color:rgba(255,255,255,.3);letter-spacing:.16em;text-transform:uppercase;margin-top:2px}
+.tier-badge{display:flex;align-items:center;gap:5px;flex-shrink:0;padding:5px 13px;border-radius:20px;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.card.oro .tier-badge{background:rgba(201,164,60,.18);color:var(--gold3);border:1px solid rgba(201,164,60,.28)}
+.card.plata .tier-badge{background:rgba(122,143,166,.14);color:var(--sil2);border:1px solid rgba(122,143,166,.22)}
+.card.bronce .tier-badge{background:rgba(154,96,64,.16);color:var(--bro2);border:1px solid rgba(154,96,64,.24)}
+.pts-label{font-size:.6rem;color:rgba(255,255,255,.3);letter-spacing:.16em;text-transform:uppercase;margin-bottom:5px}
+.pts-display{display:flex;align-items:baseline;gap:10px;margin-bottom:22px}
+.pts-num{font-family:'Cormorant Garamond',serif;font-size:4.4rem;font-weight:700;line-height:1;letter-spacing:-.01em}
+.card.oro .pts-num{color:var(--gold3)}
+.card.plata .pts-num{color:var(--sil2)}
+.card.bronce .pts-num{color:var(--bro2)}
+.pts-unit{font-size:.8rem;color:rgba(255,255,255,.35);font-weight:400;letter-spacing:.1em;text-transform:uppercase;padding-bottom:8px}
+.prog-wrap{margin-bottom:24px}
+.prog-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.prog-txt{font-size:.68rem;color:rgba(255,255,255,.32)}
+.prog-pct{font-size:.68rem;font-weight:600}
+.card.oro .prog-pct{color:var(--gold2)}
+.card.plata .prog-pct{color:var(--sil2)}
+.card.bronce .prog-pct{color:var(--bro2)}
+.prog-track{height:4px;border-radius:10px;background:rgba(255,255,255,.07);overflow:hidden}
+.prog-bar{height:100%;border-radius:10px;transition:width 1.4s cubic-bezier(.23,1,.32,1)}
+.card.oro .prog-bar{background:linear-gradient(90deg,var(--gold),var(--gold3))}
+.card.plata .prog-bar{background:linear-gradient(90deg,var(--sil),var(--sil2))}
+.card.bronce .prog-bar{background:linear-gradient(90deg,var(--bro),var(--bro2))}
+.info-strip{display:grid;grid-template-columns:1fr 1fr;gap:1px;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.06);margin-bottom:22px}
+.is-item{background:rgba(255,255,255,.03);padding:13px 14px}
+.is-val{font-family:'DM Mono',monospace;font-size:.9rem;font-weight:500;color:rgba(255,255,255,.75)}
+.is-lbl{font-size:.56rem;color:rgba(255,255,255,.26);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.card-foot{display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid rgba(255,255,255,.07);padding-top:16px}
+.cf-name{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:rgba(255,255,255,.82)}
+.cf-ot{font-size:.63rem;color:rgba(255,255,255,.25);margin-top:3px;letter-spacing:.06em}
+.cf-chip{width:38px;height:30px;border-radius:6px;display:grid;place-items:center}
+.card.oro .cf-chip{border:1.5px solid rgba(201,164,60,.28);background:rgba(201,164,60,.06)}
+.card.plata .cf-chip{border:1.5px solid rgba(122,143,166,.2);background:rgba(122,143,166,.05)}
+.card.bronce .cf-chip{border:1.5px solid rgba(154,96,64,.22);background:rgba(154,96,64,.05)}
+.chip-g{display:flex;flex-direction:column;gap:3.5px}
+.chip-l{height:1.5px;border-radius:2px;background:rgba(255,255,255,.18)}
+.chip-l:nth-child(1),.chip-l:nth-child(3){width:20px}
+.chip-l:nth-child(2){width:14px}
+.page-footer{margin-top:24px;display:flex;align-items:center;justify-content:center;gap:8px;animation:fadeUp .5s .3s ease both}
+.page-footer img{width:22px;height:22px;opacity:.3;object-fit:contain}
+.page-footer span{font-size:.65rem;color:rgba(255,255,255,.15);letter-spacing:.08em}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes cardIn{from{opacity:0;transform:scale(.92) translateY(22px)}to{opacity:1;transform:none}}
+@keyframes shimmer{0%,100%{background-position:-150% center}50%{background-position:150% center}}
+@keyframes logoIn{from{opacity:0;transform:scale(.8) translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media(max-width:440px){.pts-num{font-size:3.6rem}.card-inner{padding:22px 20px 18px}}
+/* Reg Styles */
+.reg-form {
+  width: 100%;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 28px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+.reg-group {
+  margin-bottom: 20px;
+}
+.reg-label {
+  display: block;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+  margin-left: 4px;
+}
+.reg-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 13px 18px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  color: #fff;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.reg-input:focus {
+  border-color: var(--teal2);
+  background: rgba(14,159,174,0.06);
+  box-shadow: 0 0 20px rgba(14,159,174,0.15);
+}
+.reg-input::placeholder {
+  color: rgba(255,255,255,0.15);
+}
+.reg-submit {
+  width: 100%;
+  background: linear-gradient(135deg, var(--teal), var(--teal2));
+  color: #fff;
+  border: none;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 8px 20px rgba(14,159,174,0.25);
+  margin-top: 10px;
+}
+.reg-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(14,159,174,0.4);
+  filter: brightness(1.1);
+}
+.reg-submit:active {
+  transform: scale(0.98);
+}
+.reg-prompt{margin-top:20px;padding:20px;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);border-radius:20px;text-align:center;display:none;animation:fadeUp .4s ease both}
+.reg-prompt.show{display:block}
+.reg-prompt p{font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.5;margin-bottom:16px}
+.reg-btn-link{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border:none;padding:12px 24px;border-radius:12px;font-size:.85rem;font-weight:600;cursor:pointer;transition:transform .2s;box-shadow:0 4px 12px rgba(14,159,174,.2)}
+.reg-btn-link:hover{transform:scale(1.03)}
+.reg-submit:disabled{opacity:.5;cursor:not-allowed}
+
+/* Floating WhatsApp Button */
+.wa-float {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 54px;
+  height: 54px;
+  background: #25D366;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+  cursor: pointer;
+  z-index: 100;
+  transition: transform .2s;
+  text-decoration: none;
+}
+.wa-float:hover { transform: scale(1.1) rotate(5deg); }
+.wa-float img { width: 30px; height: 30px; }
+
+.WA-NOTICE {
+  font-size: .75rem;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  margin-top: 15px;
+  line-height: 1.4;
+}
+
+/* Rewards Section */
+.rewards-section {
+  width: 100%;
+  margin-top: 24px;
+}
+.reward-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+.reward-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform .2s;
+}
+.reward-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.05); }
+.reward-icon { font-size: 1.4rem; margin-bottom: 8px; }
+.reward-name { font-size: .75rem; font-weight: 500; color: #fff; line-height: 1.2; height: 32px; display: flex; align-items: center; }
+.reward-cost { font-size: .7rem; color: var(--teal3); font-weight: 700; margin-top: 6px; text-transform: uppercase; letter-spacing: .05em; }
+</style>
+</head>
+<body>
+
+<div class="screen visible" id="screen-search">
+  <div class="brand">
+    <div class="brand-logo">
+      <img src="logo.png">
+    </div>
+    <div class="brand-name">Lavanderia<br>San Luis</div>
+    <div class="brand-tagline">Club de Puntos</div>
+  </div>
+  <label class="search-label" for="s-input">Ingresa tu número de teléfono</label>
+  <div class="search-wrap">
+    <span class="search-prefix">+503</span>
+    <input class="search-field" id="s-input" type="number"
+      placeholder="77665544"
+      autocomplete="off" inputmode="numeric"
+      onkeydown="if(event.key==='Enter') buscarOT()">
+    <button class="search-btn" onclick="buscarOT()" title="Buscar">&#128269;</button>
+  </div>
+  <div class="search-error" id="search-error">
+    Número no encontrado. Verifica que el número sea correcto.
+  </div>
+  
+  <!-- Registration Prompt -->
+  <div class="reg-prompt" id="reg-prompt">
+    <p id="reg-prompt-text">¿No eres miembro todavía?<br>Regístrate para empezar a acumular puntos.</p>
+    <button class="reg-btn-link" onclick="irARegistro()">Registrarme gratis</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-register">
+  <div class="brand" style="margin-bottom: 20px;">
+    <div class="brand-name">Crea tu Cuenta</div>
+    <div class="brand-tagline">Club de Puntos San Luis</div>
+  </div>
+  <button class="back-btn" onclick="cancelarRegistro()">&#8592; Volver</button>
+  
+  <div class="reg-form">
+    <div class="reg-group">
+      <label class="reg-label">Nombre</label>
+      <input type="text" class="reg-input" id="reg-nombre" placeholder="Ej. Juan">
+    </div>
+    <div class="reg-group">
+      <label class="reg-label">Apellido</label>
+      <input type="text" class="reg-input" id="reg-apellido" placeholder="Ej. Perez">
+    </div>
+    <div class="reg-group">
+      <label class="reg-label">Teléfono (El Salvador)</label>
+      <div style="position:relative">
+        <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.35);font-size:.95rem">+503</span>
+        <input type="number" class="reg-input" id="reg-tel" placeholder="77665544" style="padding-left:60px;width:100%">
+      </div>
+    </div>
+    <div class="reg-group">
+      <label class="reg-label">Correo Electrónico</label>
+      <input type="email" class="reg-input" id="reg-email" placeholder="ejemplo@correo.com">
+    </div>
+    <div class="reg-group">
+      <label class="reg-label">Fecha de Nacimiento</label>
+      <input type="date" class="reg-input" id="reg-fecha-nac" style="color-scheme: dark;">
+    </div>
+    <button class="reg-submit" id="reg-btn-submit" onclick="confirmarRegistro()">Finalizar Registro</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-card">
+  <div class="card-screen">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <button class="back-btn" onclick="goBack()">&#8592; Salir</button>
+      <div style="font-size: 0.6rem; color: rgba(255,255,255,0.2); letter-spacing: .1em">PUNTOS VERIFICADOS</div>
+    </div>
+    <div id="card-mount"></div>
+    
+    <!-- Rewards Section -->
+    <div class="rewards-section">
+      <div style="font-size: .65rem; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: .15em; text-align: center;">Catálogo de Canjes</div>
+      <div class="reward-grid">
+        <div class="reward-card">
+          <div class="reward-icon">💨</div>
+          <div class="reward-name">Planchado de prenda</div>
+          <div class="reward-cost">25 Pts</div>
+        </div>
+        <div class="reward-card">
+          <div class="reward-icon">🚚</div>
+          <div class="reward-name">Domicilio Gratis</div>
+          <div class="reward-cost">50 Pts</div>
+        </div>
+        <div class="reward-card">
+          <div class="reward-icon">👟</div>
+          <div class="reward-name">Lavado de Zapatos</div>
+          <div class="reward-cost">100 Pts</div>
+        </div>
+        <div class="reward-card">
+          <div class="reward-icon">🧥</div>
+          <div class="reward-name">DryClean Saco/Blazer</div>
+          <div class="reward-cost">100 Pts</div>
+        </div>
+      </div>
+      <div class="WA-NOTICE">
+        Presenta tu tarjeta en el local o escríbenos por WhatsApp para canjear tus beneficios.
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="https://wa.me/50325246129?text=Hola,%20tengo%20una%20duda%20sobre%20mi%20tarjeta%20de%20puntos." class="wa-float" target="_blank">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="Support">
+</a>
+
+<div class="page-footer">
+  <img src="logo.png">
+  <span>Lavanderia San Luis &middot; Club de Puntos</span>
+</div>
+
+<script>
+  // Configuración de Supabase
+  const SUPABASE_URL = "https://orjtfutchnnzktoonqda.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yanRmdXRjaG5uemt0b29ucWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNjUxNDEsImV4cCI6MjA5MTk0MTE0MX0.X-wQuPqS80Qy1xUU9v4jfbHWUIXMxLCFKbOS_VOym6g";
+  
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false }
+  });
+
+  let legacyClient = null;
+
+  const client = supabaseClient;
+  
+  // Auto-Login Check on start
+  window.onload = function() {
+    const savedTel = localStorage.getItem('LSL_Loyalty_Phone');
+    if(savedTel) {
+      document.getElementById('s-input').value = savedTel;
+      buscarOT(true);
+    }
+  }
+
+function getTier(pts) {
+  if (pts >= 150) return {t:'oro', label:'Oro', next:'Nivel máximo', meta:null};
+  if (pts >= 50)  return {t:'plata', label:'Plata', next:'Oro', meta:150};
+  return {t:'bronce', label:'Bronce', next:'Plata', meta:50};
+}
+
+function getProgress(pts, tier) {
+  if (!tier.meta) return 100;
+  var inicio = (tier.t === 'plata') ? 50 : 0;
+  var rango = tier.meta - inicio;
+  var actuales = pts - inicio;
+  return Math.min(100, Math.max(0, Math.round((actuales / rango) * 100)));
+}
+
+async function buscarOT(isAuto = false) {
+  // 1. Declaración de elementos de la interfaz
+  const inputEl = document.getElementById('s-input');
+  const errEl = document.getElementById('search-error');
+  const btn = document.querySelector('.search-btn');
+  const regPrompt = document.getElementById('reg-prompt');
+  
+  // Guardamos el contenido original del botón para restaurarlo luego
+  const originalHtml = btn ? btn.innerHTML : '&#128269;';
+
+  // 2. Validación de entrada
+  let raw = inputEl.value.trim().replace(/\D/g, '');
+  if (raw.length > 8) raw = raw.substring(0, 8);
+  inputEl.value = raw;
+
+  if (raw.length < 8) { 
+    if(!isAuto && raw.length > 0) shakeInput(); 
+    return; 
+  }
+
+  // 3. Preparación de la UI para la búsqueda
+  if (errEl) errEl.classList.remove('show');
+  if (regPrompt) regPrompt.classList.remove('show');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = '...';
+  }
+
+  try {
+    // 4. Ejecución de la consulta en Supabase
+    // La variable 'data' se define AQUÍ, dentro del try
+    const { data, error } = await supabaseClient
+      .from('puntos_clientes')
+      .select('id, nombre, apellido, telefono, email, fecha_nacimiento, puntos_disp, puntos_ganados, canjeados, ots, estatus, ultima_visita, nombre_software')
+      .eq('telefono', raw)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    // 5. Lógica según el resultado de 'data'
+    if (data) {
+      localStorage.setItem('LSL_Loyalty_Phone', raw);
+
+      // Verificación de perfil incompleto
+      if (!data.email || !data.fecha_nacimiento) {
+        document.getElementById('reg-prompt-text').innerHTML = `¡Hola <b>${data.nombre || 'cliente'}</b>! Completa tu perfil para asegurar tus puntos.`;
+        if (regPrompt) regPrompt.classList.add('show');
+        legacyClient = data;
+        return; 
+      }
+
+      mostrarTarjeta(data);
+
+    } else {
+      // Caso: No se encontró el número
+      if (isAuto) {
+        localStorage.removeItem('LSL_Loyalty_Phone');
+      } else {
+        document.getElementById('reg-prompt-text').innerHTML = "¿No eres miembro todavía?<br>Regístrate para empezar a acumular puntos.";
+        if (regPrompt) regPrompt.classList.add('show');
+        if (errEl) {
+          errEl.textContent = "Número no encontrado.";
+          errEl.classList.add('show');
+        }
+        shakeInput();
+      }
+    }
+
+  } catch (err) {
+    console.error("Error en la búsqueda:", err.message);
+    if (errEl) {
+      errEl.innerText = "Error de conexión. Intenta de nuevo.";
+      errEl.classList.add('show');
+    }
+  } finally {
+    // 6. Restauración final de la UI
+    // Usamos 'originalHtml' que guardamos al puro inicio
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml; 
+    }
+  }
+}
+
+function mostrarTarjeta(c) {
+  const ganados = c.puntos_ganados || 0;
+  const canjeados = c.canjeados || 0;
+  const puntos = ganados - canjeados; 
+
+  const tier = getTier(puntos);
+  const prog = getProgress(puntos, tier);
+  
+  const progLabel = !tier.meta
+    ? '¡Felicidades! Eres nivel máximo'
+    : ((tier.meta - puntos) + ' puntos para nivel ' + tier.next);
+
+  // --- LÓGICA DE VISITAS REALES ---
+  const visitas = c.ots || 0;
+  const puntosTotales = c.puntos_ganados || 0;
+  let mensajeFidelidad = "";
+  
+  if (puntosTotales > 0 || visitas > 0) {
+    mensajeFidelidad = "¡Gracias por confiar en nosotros!";
+  } else {
+    mensajeFidelidad = "¡Bienvenido al club!";
+  }
+
+  // Formateo de fecha de última visita
+  let fechaVisita = '---';
+  if (c.ultima_visita) {
+    const d = new Date(c.ultima_visita);
+    fechaVisita = isNaN(d.getTime()) ? '---' : d.toLocaleDateString('es-SV', { day: 'numeric', month: 'short' });
+  }
+
+  document.getElementById('card-mount').innerHTML =
+    '<div class="card ' + tier.t + '">' +
+    '<div class="card-deco deco-1"></div><div class="card-deco deco-2"></div><div class="card-shimmer"></div>' +
+    '<div class="card-inner">' +
+    '<div class="card-head">' +
+      '<img src="logo.png" style="width: 40px; height: 40px; object-fit: contain;">' +
+      '<div class="ch-center"><div class="ch-name">Lavandería San Luis</div><div class="ch-sub">Club de Puntos</div></div>' +
+      '<div class="tier-badge">' + tier.label + '</div>' +
+    '</div>' +
+    '<div class="pts-label">Puntos disponibles</div>' +
+    '<div class="pts-display"><span class="pts-num" id="pts-anim">0</span><span class="pts-unit">PUNTOS</span></div>' +
+    '<div class="prog-wrap"><div class="prog-info"><span class="prog-txt">' + progLabel + '</span><span class="prog-pct">' + prog + '%</span></div>' +
+    '<div class="prog-track"><div class="prog-bar" id="pbar" style="width:0%"></div></div></div>' +
+    
+    // STRIP DE INFORMACIÓN CON DATOS REALES
+    '<div class="info-strip">' +
+      '<div class="is-item"><div class="is-val">' + mensajeFidelidad + '</div></div>' +
+      '<div class="is-item"><div class="is-val">' + fechaVisita + '</div><div class="is-lbl">Tu última visita</div></div>' +
+    '</div>' +
+    
+    // PIE DE TARJETA
+    '<div class="card-foot">' +
+      '<div><div class="cf-name">' + ((c.nombre || '') + ' ' + (c.apellido || '')).trim() + '</div></div>' +
+      '<div class="cf-chip"><div class="chip-g"><div class="chip-l"></div><div class="chip-l"></div><div class="chip-l"></div></div></div>' +
+    '</div></div></div>';
+
+  document.getElementById('screen-search').classList.remove('visible');
+  document.getElementById('screen-card').classList.add('visible');
+  
+  animPts(puntos);
+  setTimeout(function() { 
+    var b = document.getElementById('pbar'); 
+    if (b) b.style.width = prog + '%'; 
+  }, 250);
+}
+
+function goBack() {
+  if(confirm("¿Quieres cerrar sesión? La próxima vez tendrás que ingresar tu número de nuevo.")) {
+    localStorage.removeItem('LSL_Loyalty_Phone');
+    document.getElementById('screen-card').classList.remove('visible');
+    document.getElementById('screen-register').classList.remove('visible');
+    document.getElementById('screen-search').classList.add('visible');
+    document.getElementById('s-input').value = '';
+  }
+}
+
+function irARegistro() {
+  document.getElementById('screen-search').classList.remove('visible');
+  document.getElementById('screen-register').classList.add('visible');
+  
+  // Limitar la fecha de nacimiento a hace 18 años
+  const inputFecha = document.getElementById('reg-fecha-nac');
+  const hoy = new Date();
+  const hace18 = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+  inputFecha.max = hace18.toISOString().split('T')[0];
+
+  // Si encontramos un cliente legacy, pre-llenamos el nombre
+  if (legacyClient) {
+    document.getElementById('reg-nombre').value = legacyClient.nombre || '';
+    document.getElementById('reg-apellido').value = legacyClient.apellido || '';
+    document.getElementById('reg-email').value = legacyClient.email || '';
+    document.getElementById('reg-fecha-nac').value = legacyClient.fecha_nacimiento || '';
+  }
+}
+
+function cancelarRegistro() {
+  document.getElementById('screen-register').classList.remove('visible');
+  document.getElementById('screen-search').classList.add('visible');
+}
+
+async function confirmarRegistro() {
+    // 1. Referencias y 2. Limpieza (Se mantiene igual...)
+    const nombreInput = document.getElementById('reg-nombre');
+    const apellidoInput = document.getElementById('reg-apellido');
+    const telInput = document.getElementById('reg-tel');
+    const emailInput = document.getElementById('reg-email');
+    const fechaNacInput = document.getElementById('reg-fecha-nac');
+    const btn = document.getElementById('reg-btn-submit');
+
+    const clean = (str) => str.replace(/[<>]/g, "").trim();
+    const nom = clean(nombreInput.value);
+    const ape = clean(apellidoInput.value);
+    const tel = telInput.value.trim().replace(/\D/g, '');
+    const mail = emailInput.value.trim().toLowerCase();
+    const nac = fechaNacInput.value;
+
+    // 3. Validaciones de Negocio (Se mantiene igual...)
+    if (!nom || !ape || tel.length < 8 || !nac) {
+        alert("Por favor completa todos los campos obligatorios.");
+        return;
+    }
+
+    // --- LÓGICA DE PROTECCIÓN DE NOMBRE_SOFTWARE ---
+    let nombreSoftwareFinal;
+    if (legacyClient && legacyClient.nombre_software) {
+        nombreSoftwareFinal = legacyClient.nombre_software; 
+    } else {
+        nombreSoftwareFinal = `${nom} ${ape}`.replace(/\s+/g, ' ').trim().toUpperCase();
+    }
+
+    // 4. Inicio del Proceso de Guardado
+    btn.disabled = true;
+    btn.innerText = "Sincronizando perfil...";
+
+    try {
+        // PASO A: Guardar/Actualizar Perfil en 'puntos_clientes'
+        const payloadPuntos = {
+            nombre: nom,
+            apellido: ape,
+            telefono: tel, // Actúa como identificador, no se modificará el de la DB si ya existe
+            email: mail, 
+            fecha_nacimiento: nac,
+            nombre_software: nombreSoftwareFinal,
+            es_registrado: true,
+            fecha_registro: new Date().toISOString()
+        };
+
+        const { data: userData, error: errPuntos } = await supabaseClient
+            .from('puntos_clientes')
+            .upsert(payloadPuntos, { 
+                onConflict: 'telefono' // 👈 Volvemos al estándar que Supabase lee nativamente
+            })
+            .select()
+            .single();
+
+        if (errPuntos) throw errPuntos;
+
+        // PASO B: Vínculo en 'directorio_clientes'
+        const { error: errDir } = await supabaseClient
+            .from('directorio_clientes')
+            .upsert({
+                nombre_cliente: nombreSoftwareFinal,
+                telefono: tel
+            }, { onConflict: 'telefono' });
+
+        if (errDir) throw errDir;
+
+        // 5. Finalización con éxito
+        alert(`¡Ahora eres parte del club de puntos ${nom}!`);
+        localStorage.setItem('LSL_Loyalty_Phone', tel);
+        legacyClient = null;
+        document.getElementById('screen-register').classList.remove('visible');
+        mostrarTarjeta(userData);
+        
+    } catch (err) {
+        console.error("Error:", err.message);
+        alert("Error: " + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Finalizar Registro";
+    }
+}
+
+function animPts(target) {
+  var el = document.getElementById('pts-anim'); if (!el) return;
+  var s = performance.now(), ms = 1200;
+  (function loop(now) {
+    var t = Math.min(1,(now-s)/ms), e = 1-Math.pow(1-t,3);
+    el.textContent = Math.round(e*target).toLocaleString('es-SV');
+    if (t < 1) requestAnimationFrame(loop);
+  })(s);
+}
+
+/* --- FUNCIONES DE UTILIDAD --- */
+
+function shakeInput() {
+  const el = document.getElementById('s-input');
+  if (!el) return;
+  el.style.animation = 'none'; 
+  el.offsetHeight; // Truco para reiniciar la animación (reflow)
+  el.style.animation = 'shake .4s ease';
+  el.style.borderColor = '#E05555';
+  setTimeout(() => { 
+    el.style.borderColor = ''; 
+    el.style.animation = ''; 
+  }, 700);
+}
+
+/* --- LOG DE ANALÍTICAS (APERTURA) --- */
+
+/**
+ * Registra la apertura de la página capturando IP y metadatos.
+ */
+async function registrarApertura() {
+  try {
+    console.log("Iniciando registro de apertura...");
+
+    // 1. Intentar obtener la IP pública (si falla, el proceso continúa)
+    let ip = "Desconocida";
+    try {
+      // Agregamos un controlador de tiempo para que no tarde demasiado
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 4000);
+
+      const ipResponse = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+      const ipData = await ipResponse.json();
+      ip = ipData.ip;
+      clearTimeout(id);
+    } catch (ipErr) {
+      console.warn("No se pudo obtener la IP (posible bloqueo o timeout), continuando...");
+    }
+
+    // 2. Recopilar datos del entorno del cliente
+    const datosApertura = {
+      ip_address: ip,
+      user_agent: navigator.userAgent,
+      idioma: navigator.language,
+      resolucion_pantalla: `${window.screen.width}x${window.screen.height}`,
+      pagina_origen: window.location.pathname,
+      fecha_apertura: new Date().toISOString()
+    };
+
+    // 3. Enviar a la tabla en Supabase
+    // Usamos 'supabaseClient' o 'client' según como lo definiste arriba
+    const { error } = await supabaseClient
+      .from('registros_apertura')
+      .insert([datosApertura]);
+
+    if (error) throw error;
+
+    console.log("Apertura registrada exitosamente para IP:", ip);
+
+  } catch (err) {
+    console.error("Error crítico al registrar apertura:", err.message);
+  }
+}
+
+/* --- INICIALIZACIÓN --- */
+
+// Ejecutar automáticamente cuando la página esté lista
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', registrarApertura);
+} else {
+  registrarApertura();
+}
+
+// Ejecutar cuando la página esté lista
+document.addEventListener('DOMContentLoaded', registrarApertura);
+  /**
+ * Registra la apertura de la página capturando IP y metadatos.
+ * Se recomienda llamar a esta función al cargar el DOM.
+ */
+async function registrarApertura() {
+    try {
+        console.log("Iniciando registro de apertura...");
+
+        // 1. Intentar obtener la IP pública (si falla, el proceso continúa)
+        let ip = "Desconocida";
+        try {
+            const ipResponse = await fetch('https://api.ipify.org?format=json', { timeout: 5000 });
+            const ipData = await ipResponse.json();
+            ip = ipData.ip;
+        } catch (ipErr) {
+            console.warn("No se pudo obtener la IP (posible bloqueo), continuando registro...");
+        }
+
+        // 2. Recopilar datos del entorno del cliente
+        const datosApertura = {
+            ip_address: ip,
+            user_agent: navigator.userAgent,
+            idioma: navigator.language,
+            resolucion_pantalla: `${window.screen.width}x${window.screen.height}`,
+            pagina_origen: window.location.pathname,
+            fecha_apertura: new Date().toISOString()
+        };
+
+        // 3. Enviar a la tabla en Supabase
+        const { error } = await client
+            .from('registros_apertura')
+            .insert([datosApertura]);
+
+        if (error) {
+            // Si hay error aquí, revisa que la tabla exista y tenga permisos RLS
+            throw error;
+        }
+
+        console.log("ip", ip);
+
+    } catch (err) {
+        console.error("error", err.message);
+    }
+}
+
+// Ejecutar automáticamente cuando la página esté lista
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', registrarApertura);
+} else {
+    registrarApertura();
+}
+</script>
+</body>
+</html>
