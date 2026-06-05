@@ -910,10 +910,10 @@
     const statusWeights = { "null": 0, "Bronce": 1, "Plata": 2, "Oro": 3 };
     let currentLimit = 50; // Valor inicial de filas a mostrar
 
-    const SUPABASE_URL = "https://orjtfutchnnzktoonqda.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yanRmdXRjaG5uemt0b29ucWRhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjM2NTE0MSwiZXhwIjoyMDkxOTQxMTQxfQ.-IHS1S86rSjHapRxKHAjHCnQvcFZ098oGW3Hs74Yeho";
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-      global: { headers: { 'x-admin-code': 'LSL_ADMIN_2026' } }
+      const SUPABASE_URL = "PROCESS_ENV_SUPABASE_URL";
+      const SUPABASE_KEY = "PROCESS_ENV_SUPABASE_KEY";
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      global: { headers: { 'x-admin-code': 'PROCESS_ENV_ADMIN_CODE' } }
     });
     let currentSortCol = 'nombre_software';
     let sortAsc = true;
